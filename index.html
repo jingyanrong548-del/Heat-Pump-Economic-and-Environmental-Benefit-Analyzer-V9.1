@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>热泵经济与环境效益分析器 V9.1 (调试增强版)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="app-wrapper">
+        <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V9.1 (调试增强版)</span></h1>
+                <p class="mt-2 text-md text-gray-600">综合评估热泵(含储能)相较于传统锅炉的投资回报、全寿命周期成本(LCC)与环保优势</p>
+            </header>
+
+            <div class="space-y-8">
+                <div class="space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">1. 项目基本信息</h2>
+                        <div class="input-group">
+                             <div>
+                                <label for="projectName" class="block text-sm font-medium text-gray-700">项目名称</label>
+                                <input type="text" id="projectName" value="示例项目" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                            </div>
+                            <div>
+                                <label for="heatingLoad" class="block text-sm font-medium text-gray-700">制热负荷 (kW)</label>
+                                <input type="number" id="heatingLoad" value="1000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                            </div>
+                            <div>
+                                <label for="operatingHours" class="block text-sm font-medium text-gray-700">年运行小时 (h/年)</label>
+                                <input type="number" id="operatingHours" value="2000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 id="section2Title" class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">2. 方案配置</h2>
+                        
+                        <div class="mb-6 pb-4 border-b">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 A (您的方案) 配置</h3>
+                            <fieldset class="flex space-x-6">
+                                <div>
+                                    <input type="radio" id="modeStandard" name="schemeAMode" value="standard" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change" checked>
+                                    <label for="modeStandard" class="ml-2 text-sm font-medium text-gray-700">模式一: 100% 热泵系统 (标准模式)</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="modeHybrid" name="schemeAMode" value="hybrid" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                                    <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (热泵 + 辅助热源)</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="input-group">
+                            <div>
+                                <div class="tooltip-container">
+                                    <label for="hpCapex" class="block text-sm font-medium text-gray-700">
+                                        热泵主机投资
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </label>
+                                    <span class="tooltip-text" style="width: 240px; margin-left: -120px;"><b>说明:</b><br>指热泵主机、水泵、管网及其他配套设施的投资。<b>不应</b>包含储能系统（请填入下方专用栏）。</span>
+                                </div>
+                                <input type="number" id="hpCapex" value="200" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                <label for="storageCapex" class="block text-sm font-medium text-gray-700 mt-2">储能系统投资 (选填)</label>
+                                <input type="number" id="storageCapex" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                <label for="hpSalvageRate" class="block text-xs font-medium text-gray-600 mt-2">残值率 (%)</label>
+                                <input type="number" id="hpSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                            </div>
+                        </div>
+
+                        <div id="hybridConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-blue-300">
+                            
+                            <div class="input-group">
+                                <div>
+                                    <div class="tooltip-container">
+                                        <label for="hybridLoadShare" class="block text-sm font-medium text-gray-700">
+                                            热泵承担的负荷比例 (%)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </label>
+                                        <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>示例:</b><br>总加热-30℃ -> 150℃ (总温升180℃)<br>热泵加热-30℃ -> 50℃ (温升80℃)<br>应填写: (80 / 180) * 100 = 44.4%</span>
+                                    </div>
+                                    <input type="number" id="hybridLoadShare" value="50" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                </div>
+                                <div>
+                                    <label for="hybridAuxHeaterType" class="block text-sm font-medium text-gray-700">选择辅助热源</label>
+                                    <select id="hybridAuxHeaterType" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="electric" selected>电加热器/电锅炉</option>
+                                        <option value="gas">天然气锅炉</option>
+                                        <option value="fuel">燃油锅炉</option>
+                                        <option value="coal">燃煤锅炉</option>
+                                        <option value="biomass">生物质锅炉</option>
+                                        <option value="steam">管网蒸汽</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="hybridAuxHeaterCapex" class="block text-sm font-medium text-gray-700">辅助热源初始投资 (万元)</label>
+                                    <input type="number" id="hybridAuxHeaterCapex" value="30" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                </div>
+                                <div>
+                                    <label for="hybridAuxHeaterOpex" class="block text-sm font-medium text-gray-700">辅助热源运维成本 (万元/年)</label>
+                                    <input type="number" id="hybridAuxHeaterOpex" value="0.5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="comparisonTogglesContainer" class="mt-6 pt-6 border-t">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 B (对比基准): 100% 传统热源投资 (请勾选)</h3>
+                            <div class="input-group">
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_gas" data-target="gas" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_gas" class="ml-2 block text-sm font-medium text-gray-700">天然气锅炉投资</label>
+                                    </div>
+                                    <input type="number" id="gasBoilerCapex" value="80" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="gasSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 gas-related">残值率 (%)</label>
+                                    <input type="number" id="gasSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param gas-related track-change">
+                                </div>
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_fuel" data-target="fuel" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_fuel" class="ml-2 block text-sm font-medium text-gray-700">燃油锅炉投资</label>
+                                    </div>
+                                    <input type="number" id="fuelBoilerCapex" value="70" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="fuelSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 fuel-related">残值率 (%)</label>
+                                    <input type="number" id="fuelSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param fuel-related track-change">
+                                </div>
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_coal" data-target="coal" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_coal" class="ml-2 block text-sm font-medium text-gray-700">燃煤锅炉投资</label>
+                                    </div>
+                                    <input type="number" id="coalBoilerCapex" value="60" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="coalSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 coal-related">残值率 (%)</label>
+                                    <input type="number" id="coalSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param coal-related track-change">
+                                </div>
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_biomass" data-target="biomass" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_biomass" class="ml-2 block text-sm font-medium text-gray-700">生物质锅炉投资</label>
+                                    </div>
+                                    <input type="number" id="biomassBoilerCapex" value="75" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="biomassSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 biomass-related">残值率 (%)</label>
+                                    <input type="number" id="biomassSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param biomass-related track-change">
+                                </div>
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_electric" data-target="electric" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_electric" class="ml-2 block text-sm font-medium text-gray-700">电锅炉投资</label>
+                                    </div>
+                                    <input type="number" id="electricBoilerCapex" value="50" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="electricSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 electric-related">残值率 (%)</label>
+                                    <input type="number" id="electricSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param electric-related track-change">
+                                </div>
+                                <div>
+                                    <div class="flex items-center mb-1">
+                                        <input type="checkbox" id="compare_steam" data-target="steam" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
+                                        <label for="compare_steam" class="ml-2 block text-sm font-medium text-gray-700">管网蒸汽投资</label>
+                                    </div>
+                                    <input type="number" id="steamCapex" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <label for="steamSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 steam-related">残值率 (%)</label>
+                                    <input type="number" id="steamSalvageRate" value="0" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param steam-related track-change">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="standardModeSections" class="space-y-6">
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">3. 设备运行参数</h2>
+                            <div class="input-group">
+                                <div class="tooltip-container">
+                                    <label for="hpCop" id="hpCopLabel" class="block text-sm font-medium text-gray-700">
+                                        全年综合性能系数 (SPF)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </label>
+                                    <input type="number" id="hpCop" value="3.0" step="0.1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>定义 (VDI 4645):</b> SPF (Seasonal Performance Factor) 是指在<b>整个年度</b>内，热泵系统<b>总制热量</b>与<b>总耗电量</b>之比。<br><b>重要:</b> 此处的总耗电量<b>已包含</b>热泵主机、水泵、风机、电辅热等所有配套设备的耗电。</span>
+                                </div>
+                                <div class="tooltip-container gas-related">
+                                    <label for="gasBoilerEfficiency" class="block text-sm font-medium text-gray-700">天然气锅炉效率 (%)</label>
+                                    <input type="number" id="gasBoilerEfficiency" value="92" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 92%</b><br>依据《工业锅炉能效限定值及能效等级》(GB 24500-2020)，为新型燃气锅炉的典型高效值。</span>
+                                </div>
+                                 <div class="tooltip-container fuel-related">
+                                    <label for="fuelBoilerEfficiency" class="block text-sm font-medium text-gray-700">燃油锅炉效率 (%)</label>
+                                    <input type="number" id="fuelBoilerEfficiency" value="90" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 90%</b><br>依据《工业锅炉能效限定值及能效等级》(GB 24500-2020)，为新型燃油锅炉的典型高效值。</span>
+                                </div>
+                                <div class="tooltip-container coal-related">
+                                    <label for="coalBoilerEfficiency" class="block text-sm font-medium text-gray-700">燃煤锅炉效率 (%)</label>
+                                    <input type="number" id="coalBoilerEfficiency" value="80" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 80%</b><br>依据《工业锅炉能效限定值及能效等级》(GB 24500-2020)，为新型链条炉排燃煤锅炉的典型能效值。</span>
+                                </div>
+                                <div class="tooltip-container biomass-related">
+                                    <label for="biomassBoilerEfficiency" class="block text-sm font-medium text-gray-700">生物质锅炉效率 (%)</label>
+                                    <input type="number" id="biomassBoilerEfficiency" value="85" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 85%</b><br>新型生物质锅炉的典型热效率，介于燃煤和燃气锅炉之间。</span>
+                                </div>
+                                 <div class="tooltip-container electric-related">
+                                    <label for="electricBoilerEfficiency" class="block text-sm font-medium text-gray-700">电锅炉效率 (%)</label>
+                                    <input type="number" id="electricBoilerEfficiency" value="98" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 98%</b><br>电热转换效率的行业公认值，已考虑少量热损失。</span>
+                                </div>
+                                 <div class="tooltip-container steam-related">
+                                    <label for="steamEfficiency" class="block text-sm font-medium text-gray-700">管网蒸汽效率 (%)</label>
+                                    <input type="number" id="steamEfficiency" value="98" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 98%</b><br>指换热站或用户侧的换热效率，为高效板式换热器的典型值。</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                             <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">4. 能源热值</h2>
+                             <div class="input-group">
+                                 <div class="tooltip-container gas-related">
+                                    <label for="gasCalorificUnit" class="block text-sm font-medium text-gray-700">天然气热值</label>
+                                    <select id="gasCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="MJ/m3" selected>MJ/m³</option>
+                                        <option value="kWh/m3">kWh/m³</option>
+                                        <option value="GJ/m3">GJ/m³</option>
+                                    </select>
+                                    <input type="number" id="gasCalorific" data-base-value="35.57" value="35.57" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 35.57 MJ/m³</b><br>依据《天然气》（GB 17820-2018），为一类天然气的典型低位发热值。</span>
+                                </div>
+                                 <div class="tooltip-container fuel-related">
+                                    <label for="fuelCalorificUnit" class="block text-sm font-medium text-gray-700">燃油热值</label>
+                                    <select id="fuelCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="MJ/kg" selected>MJ/kg</option>
+                                        <option value="GJ/t">GJ/t</option>
+                                        <option value="kWh/kg">kWh/kg</option>
+                                    </select>
+                                    <input type="number" id="fuelCalorific" data-base-value="42.6" value="42.6" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text" id="fuelCalorificTooltip"><b>默认值: 42.6 MJ/kg</b><br>国标中0号柴油的典型低位发热量参考值。</span>
+                                </div>
+                                <div class="tooltip-container coal-related">
+                                    <label for="coalCalorificUnit" class="block text-sm font-medium text-gray-700">标准煤热值</label>
+                                    <select id="coalCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="MJ/kg" selected>MJ/kg</option>
+                                        <option value="GJ/t">GJ/t</option>
+                                        <option value="kWh/kg">kWh/kg</option>
+                                    </select>
+                                    <input type="number" id="coalCalorific" data-base-value="29.3" value="29.3" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 29.3 MJ/kg</b><br>标准煤的定义值，即每千克标准煤的发热量为7000大卡，折合约29.3MJ。</span>
+                                </div>
+                                <div class="tooltip-container biomass-related">
+                                    <label for="biomassCalorificUnit" class="block text-sm font-medium text-gray-700">生物质热值</Labe>
+                                    <select id="biomassCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="MJ/kg" selected>MJ/kg</option>
+                                        <option value="kcal/kg">kcal/kg</option>
+                                        <option value="GJ/t">GJ/t</option>
+                                        <option value="kWh/kg">kWh/kg</option>
+                                    </select>
+                                    <input type="number" id="biomassCalorific" data-base-value="16.32" value="16.32" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 16.32 MJ/kg</b><br>相当于约 3900 kcal/kg，为常见木质颗粒等生物质成型燃料的典型低位发热值。</span>
+                                </div>
+                                 <div class="tooltip-container steam-related">
+                                    <label for="steamCalorificUnit" class="block text-sm font-medium text-gray-700">管网蒸汽热值</label>
+                                     <select id="steamCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kWh/t" selected>kWh/吨</option>
+                                        <option value="GJ/t">GJ/吨</option>
+                                    </select>
+                                    <input type="number" id="steamCalorific" data-base-value="700" value="700" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 700 kWh/吨</b><br>工程应用中常见的中低压工业饱和蒸汽热值(约2.5 GJ/吨)，如需按国标GB/T 2589-2020进行能耗核算，可取1086 kWh/吨。</span>
+                                </div>
+                             </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">5. 能源价格与排放因子</h2>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <div class="tooltip-container">
+                                        <label class="block text-sm font-medium text-gray-700">
+                                            热泵电价时段 (总比例必须为100%)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </label>
+                                        <span class="tooltip-text"><b>通用电价模式:</b><br>您可以自定义任意数量的电价时段（如峰、平、谷、尖），系统会根据您填写的“运行比例”自动计算加权平均电价。<br><b>示例:</b><br>1. <b>标准电价:</b> 只留一个时段, 比例 100%<br>2. <b>峰谷电价:</b> 添加3个时段, 比例分别填 30, 40, 30 (总和为100)</span>
+                                    </div>
+                                    <button id="addPriceTierBtn" type="button" class="text-sm bg-green-100 text-green-700 font-semibold py-2 px-3 rounded-lg hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300">
+                                        + 添加电价时段
+                                    </button>
+                                </div>
+                                <div id="priceTierError" class="hidden text-red-600 text-center font-bold p-2 bg-red-50 rounded-md"></div>
+                                <div id="priceTiersContainer" class="space-y-3">
+                                    </div>
+                            </div>
+                            <div class="input-group mt-6 pt-6 border-t">
+                                <div class="tooltip-container gas-related">
+                                    <label for="gasPrice" class="block text-sm font-medium text-gray-700">天然气价 (元/m³)</label>
+                                    <input type="number" id="gasPrice" value="4.2" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 4.2 元/m³</b><br>参考国内主要城市非居民用天然气的平均价格。</span>
+                                </div>
+                                 <div class="tooltip-container fuel-related">
+                                    <label for="fuelPrice" class="block text-sm font-medium text-gray-700">油价 (元/吨)</label>
+                                    <input type="number" id="fuelPrice" value="8900" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text" id="fuelPriceTooltip"><b>默认值: 8900 元/吨</b><br>参考国内0号柴油市场价格及密度（约0.84kg/L）折算。</span>
+                                </div>
+                                <div class="tooltip-container coal-related">
+                                    <label for="coalPrice" class="block text-sm font-medium text-gray-700">煤价 (元/吨)</label>
+                                    <input type="number" id="coalPrice" value="1000" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 1000 元/吨</b><br>参考国内动力煤（5500大卡）市场平均价格。</span>
+                                </div>
+                                <div class="tooltip-container biomass-related">
+                                    <label for="biomassPrice" class="block text-sm font-medium text-gray-700">生物质价 (元/吨)</label>
+                                    <input type="number" id="biomassPrice" value="850" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 850 元/吨</b><br>参考国内生物质成型燃料（如木质颗粒）的市场平均价格。</span>
+                                </div>
+                                 <div class="tooltip-container steam-related">
+                                    <label for="steamPrice" class="block text-sm font-medium text-gray-700">管网蒸汽价 (元/吨)</label>
+                                    <input type="number" id="steamPrice" value="300" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 300 元/吨</b><br>参考国内主要城市集中供热管网蒸汽的市场价格。</span>
+                                </div>
+                                <div class="tooltip-container">
+                                    <div class="flex items-center mb-1">
+                                         <input type="checkbox" id="greenElectricityToggle" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                                        <label for="greenElectricityToggle" class="ml-2 block text-sm font-medium text-gray-700">使用绿电</label>
+                                    </div>
+                                    <select id="gridFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/kWh" selected>kgCO₂/kWh</option>
+                                        <option value="tCO2/MWh">tCO₂/MWh</option>
+                                    </select>
+                                    <input type="number" id="gridFactor" data-base-value="0.57" value="0.57" step="0.01" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 0.57 kgCO₂/kWh</b><br>数据来源：生态环境部《2022年度中国区域电网平均二氧化碳排放因子》，全国平均值。</span>
+                                </div>
+                                 <div class="tooltip-container gas-related">
+                                    <label for="gasFactorUnit" class="block text-sm font-medium text-gray-700">天然气因子</label>
+                                    <select id="gasFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/m3" selected>kgCO₂/m³</option>
+                                        <option value="kgCO2/GJ">kgCO₂/GJ</option>
+                                    </select>
+                                    <input type="number" id="gasFactor" data-base-value="1.97" value="1.97" step="0.01" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 1.97 kgCO₂/m³</b><br>参考《省级温室气体清单编制指南》推荐值，并结合常见天然气组分计算。</span>
+                                </div>
+                                 <div class="tooltip-container fuel-related">
+                                    <label for="fuelType" class="block text-sm font-medium text-gray-700">燃油种类与因子</label>
+                                    <select id="fuelType" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="diesel" selected>0号柴油</option>
+                                        <option value="heavy_oil">重油</option>
+                                        <option value="residual_oil">渣油</option>
+                                    </select>
+                                    <select id="fuelFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/t" selected>kgCO₂/吨</option>
+                                        <option value="kgCO2/kg">kgCO₂/kg</option>
+                                        <option value="kgCO2/GJ">kgCO₂/GJ</option>
+                                    </select>
+                                    <input type="number" id="fuelFactor" data-base-value="3090" value="3090" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text" id="fuelFactorTooltip"><b>默认值: 3090 kgCO₂/吨</b><br>参考《省级温室气体清单编制指南》中柴油的排放因子。</span>
+                                </div>
+                                 <div class="tooltip-container coal-related">
+                                    <label for="coalFactorUnit" class="block text-sm font-medium text-gray-700">燃煤因子</label>
+                                     <select id="coalFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/t" selected>kgCO₂/吨</option>
+                                        <option value="kgCO2/kg">kgCO₂/kg</option>
+                                        <option value="kgCO2/GJ">kgCO₂/GJ</option>
+                                    </select>
+                                    <input type="number" id="coalFactor" data-base-value="2420" value="2420" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 2420 kgCO₂/吨</b><br>参考《省级温室气体清单编制指南》，适用于工业锅炉常用的烟煤或无烟煤。</span>
+                                </div>
+                                <div class="tooltip-container biomass-related">
+                                    <label for="biomassFactorUnit" class="block text-sm font-medium text-gray-700">生物质因子</label>
+                                     <select id="biomassFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/t" selected>kgCO₂/吨</option>
+                                        <option value="kgCO2/kg">kgCO₂/kg</option>
+                                        <option value="kgCO2/GJ">kgCO₂/GJ</option>
+                                    </select>
+                                    <input type="number" id="biomassFactor" data-base-value="0" value="0" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 0 kgCO₂/吨</b><br>依据《省级温室气体清单编制指南》等权威标准，生物质燃料燃烧排放的CO₂视为“碳中性”（即不计入化石能源排放），故净排放因子计为0。</span>
+                                </div>
+                                 <div class="tooltip-container steam-related">
+                                    <label for="steamFactorUnit" class="block text-sm font-medium text-gray-700">管网蒸汽因子</label>
+                                     <select id="steamFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                        <option value="kgCO2/kWh" selected>kgCO₂/kWh</option>
+                                        <option value="tCO2/MWh">tCO₂/MWh</option>
+                                        <option value="kgCO2/GJ">kgCO₂/GJ</option>
+                                    </select>
+                                    <input type="number" id="steamFactor" data-base-value="0.35" value="0.35" step="0.001" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                     <span class="tooltip-text"><b>默认值: 0.35 kgCO₂/kWh</b><br>行业常用参考值，基于以燃煤热电联产为主的热源，并考虑热电分配。</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                             <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">6. 年度运维 (O&M) 成本 (万元/年)</h2>
+                             <div class="input-group">
+                                 <div class="tooltip-container hp-opex-related">
+                                    <label for="hpOpexCost" class="block text-sm font-medium text-gray-700">热泵系统</label>
+                                    <input type="number" id="hpOpexCost" value="2.5" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 2.5 万元/年</b><br>含人工及维保物料费。估算: 0.5万人工 + 1%*200万投资维保。</span>
+                                 </div>
+                                 <div class="tooltip-container gas-related gas-opex-related">
+                                    <label for="gasOpexCost" class="block text-sm font-medium text-gray-700">天然气锅炉</label>
+                                    <input type="number" id="gasOpexCost" value="1.8" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 1.8 万元/年</b><br>含人工及维保物料费。估算: 1万人工 + 1%*80万投资维保。</span>
+                                 </div>
+                                 <div class="tooltip-container fuel-related fuel-opex-related">
+                                    <label for="fuelOpexCost" class="block text-sm font-medium text-gray-700">燃油锅炉</label>
+                                    <input type="number" id="fuelOpexCost" value="1.9" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 1.9 万元/年</b><br>含人工及维保物料费。估算: 1.2万人工 + 1%*70万投资维保。</span>
+                                 </div>
+                                  <div class="tooltip-container coal-related coal-opex-related">
+                                    <label for="coalOpexCost" class="block text-sm font-medium text-gray-700">燃煤锅炉</label>
+                                    <input type="number" id="coalOpexCost" value="6.8" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 6.8 万元/年</b><br>含人工及维保物料费。估算: 5万人工 + 3%*60万投资维保。</span>
+                                 </div>
+                                 <div class="tooltip-container biomass-related biomass-opex-related">
+                                    <label for="biomassOpexCost" class="block text-sm font-medium text-gray-700">生物质锅炉</label>
+                                    <input type="number" id="biomassOpexCost" value="6.3" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 6.3 万元/年</b><br>含人工及维保物料费。估算: 4万人工 + 3%*75万投资维保。</span>
+                                 </div>
+                                 <div class="tooltip-container electric-related electric-opex-related">
+                                    <label for="electricOpexCost" class="block text-sm font-medium text-gray-700">电锅炉</label>
+                                    <input type="number" id="electricOpexCost" value="0.4" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 0.4 万元/年</b><br>含人工及维保物料费。估算: 0.2万人工 + 0.4%*50万投资维保。</span>
+                                 </div>
+                                 <div class="tooltip-container steam-related steam-opex-related">
+                                    <label for="steamOpexCost" class="block text-sm font-medium text-gray-700">管网蒸汽 (运维)</label>
+                                    <input type="number" id="steamOpexCost" value="0" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                    <span class="tooltip-text"><b>默认值: 0 万元/年</b><br>假设用户侧运维成本已计入蒸汽单价或可忽略不计。</span>
+                                 </div>
+                             </div>
+                         </div>
+                    </div> 
+
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center mb-4">
+                            <h2 id="section7Title" class="text-xl font-semibold border-l-4 border-blue-500 pl-3">7. 全寿命周期 (LCC) 与 ROI 参数</h2>
+                            <div class="tooltip-container ml-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="tooltip-text"><b>计算依据:</b><br>基于净现值(NPV)法，符合《建设项目经济评价方法与参数》等权威标准，用于计算LCC、NPV、IRR、动态PBP。</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="tooltip-container">
+                                <label for="lccYears" class="block text-sm font-medium text-gray-700">经济分析年限 (年)</label>
+                                <input type="number" id="lccYears" value="15" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                <span class="tooltip-text"><b>默认值: 15 年</b><br>热泵系统及锅炉的典型经济寿命。</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <label for="discountRate" class="block text-sm font-medium text-gray-700">折现率 (基准收益率, %)</label>
+                                <input type="number" id="discountRate" value="8" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                <span class="tooltip-text"><b>默认值: 8 %</b><br>即基准收益率，用于计算资金的时间价值。IRR > 此值，则项目可行。</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <label for="energyInflationRate" class="block text-sm font-medium text-gray-700">能源价格年均涨幅 (%)</label>
+                                <input type="number" id="energyInflationRate" value="3" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                <span class="tooltip-text"><b>默认值: 3 %</b><br>预测的能源（电、气、油、煤等）价格年均增长率。</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <label for="opexInflationRate" class="block text-sm font-medium text-gray-700">运维成本年均涨幅 (%)</label>
+                                <input type="number" id="opexInflationRate" value="5" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
+                                <span class="tooltip-text"><b>默认值: 5 %</b><br>预测的O&M成本（人工+维保）年均增长率。</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div> <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
+
+                 <button id="calculateBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 text-lg mt-6">
+                    开始计算分析
+                </button>
+
+                <div class="mt-4 flex items-center justify-center space-x-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="enableScenarioComparison" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                        <label for="enableScenarioComparison" class="ml-2 block text-sm font-medium text-gray-700">启用多方案对比</label>
+                    </div>
+                    <button id="saveScenarioBtn" class="text-sm bg-gray-400 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300 hidden cursor-not-allowed" disabled>
+                        暂存当前热泵方案 (请先计算)
+                    </button>
+                </div>
+                <div id="results-container" class="mt-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 id="results-title" class="text-xl font-semibold mb-4 text-center">静态、ROI 与 LCC 对比分析结果</h2>
+                        <div id="results-placeholder" class="text-center text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <p class="mt-2">请填写上方参数并点击计算</p>
+                        </div>
+                        <div id="results-content" class="hidden space-y-6">
+                            </div>
+                    </div>
+                </div>
+
+                <div id="scenario-comparison-container" class="mt-8 bg-white p-6 rounded-xl shadow-md hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">已暂存的热泵方案 LCC 对比</h2>
+                        <div class="flex space-x-2">
+                            <button id="undoClearBtn" class="text-sm bg-yellow-100 text-yellow-800 font-semibold py-2 px-3 rounded-lg hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-300 hidden">
+                                恢复列表
+                            </button>
+                            <button id="clearScenariosBtn" class="text-sm bg-red-100 text-red-700 font-semibold py-2 px-3 rounded-lg hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300">
+                                清空对比列表
+                            </button>
+                        </div>
+                    </div>
+                    <div id="scenario-table-wrapper" class="overflow-x-auto"> <table id="scenario-comparison-table" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">方案名称</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">总投资 (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">主机投资 (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">储能投资 (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COP</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年运行成本 (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">热泵 LCC (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">对比基准</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">动态回收期 (PBP)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">内部收益率 (IRR)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年碳排 (吨CO₂)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="scenario-summary" class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg space-y-2 hidden">
+                        </div>
+                </div>
+
+            </div> </div>
+        <footer class="text-center py-4 text-sm text-gray-500 border-t mt-8">
+            <p>本程序已尽力确保正确，但不承担相关法律责任，App bug 请联系荆炎荣 15280122625。</p>
+            <p class="mt-1">注：全寿命周期成本(LCC)与ROI计算基于净现值(NPV)法，符合《建设项目经济评价方法与参数》相关规定。</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+
+    <div id="print-report-container" class="print-only"></div>
+    
+</body>
+</html>
