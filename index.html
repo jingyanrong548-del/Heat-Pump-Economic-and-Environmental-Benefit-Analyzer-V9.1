@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>热泵经济与环境效益分析器 V9.1 (调试增强版)</title>
+    <title>工业热泵经济与环境效益分析器 V10.0 (调试增强版)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -18,8 +18,8 @@
     <div id="app-wrapper">
         <div class="container mx-auto p-4 md:p-8 max-w-6xl">
             <header class="text-center mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V9.1 (调试增强版)</span></h1>
-                <p class="mt-2 text-md text-gray-600">综合评估热泵(含储能)相较于传统锅炉的投资回报、全寿命周期成本(LCC)与环保优势</p>
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">工业热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V10.0 (调试增强版)</span></h1>
+                <p class="mt-2 text-md text-gray-600">综合评估工业热泵(含储能)相较于传统锅炉的投资回报、全寿命周期成本(LCC)与环保优势</p>
             </header>
 
             <div class="space-y-8">
@@ -51,11 +51,11 @@
                             <fieldset class="flex space-x-6">
                                 <div>
                                     <input type="radio" id="modeStandard" name="schemeAMode" value="standard" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change" checked>
-                                    <label for="modeStandard" class="ml-2 text-sm font-medium text-gray-700">模式一: 100% 热泵系统 (标准模式)</label>
+                                    <label for="modeStandard" class="ml-2 text-sm font-medium text-gray-700">模式一: 100% 工业热泵系统 (标准模式)</label>
                                 </div>
                                 <div>
                                     <input type="radio" id="modeHybrid" name="schemeAMode" value="hybrid" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
-                                    <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (热泵 + 辅助热源)</label>
+                                    <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (工业热泵 + 辅助热源)</label>
                                 </div>
                             </fieldset>
                         </div>
@@ -63,12 +63,12 @@
                             <div>
                                 <div class="tooltip-container">
                                     <label for="hpCapex" class="block text-sm font-medium text-gray-700">
-                                        热泵主机投资
+                                        工业热泵主机投资
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                           <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </label>
-                                    <span class="tooltip-text" style="width: 240px; margin-left: -120px;"><b>说明:</b><br>指热泵主机、水泵、管网及其他配套设施的投资。<b>不应</b>包含储能系统（请填入下方专用栏）。</span>
+                                    <span class="tooltip-text" style="width: 240px; margin-left: -120px;"><b>说明:</b><br>指工业热泵主机、水泵、管网及其他配套设施的投资。<b>不应</b>包含储能系统（请填入下方专用栏）。</span>
                                 </div>
                                 <input type="number" id="hpCapex" value="200" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                 <label for="storageCapex" class="block text-sm font-medium text-gray-700 mt-2">储能系统投资 (选填)</label>
@@ -84,12 +84,12 @@
                                 <div>
                                     <div class="tooltip-container">
                                         <label for="hybridLoadShare" class="block text-sm font-medium text-gray-700">
-                                            热泵承担的负荷比例 (%)
+                                            工业热泵承担的负荷比例 (%)
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </label>
-                                        <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>示例:</b><br>总加热-30℃ -> 150℃ (总温升180℃)<br>热泵加热-30℃ -> 50℃ (温升80℃)<br>应填写: (80 / 180) * 100 = 44.4%</span>
+                                        <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>示例:</b><br>总加热-30℃ -> 150℃ (总温升180℃)<br>工业热泵加热-30℃ -> 50℃ (温升80℃)<br>应填写: (80 / 180) * 100 = 44.4%</span>
                                     </div>
                                     <input type="number" id="hybridLoadShare" value="50" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                 </div>
@@ -190,7 +190,7 @@
                                         </svg>
                                     </label>
                                     <input type="number" id="hpCop" value="3.0" step="0.1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
-                                    <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>定义 (VDI 4645):</b> SPF (Seasonal Performance Factor) 是指在<b>整个年度</b>内，热泵系统<b>总制热量</b>与<b>总耗电量</b>之比。<br><b>重要:</b> 此处的总耗电量<b>已包含</b>热泵主机、水泵、风机、电辅热等所有配套设备的耗电。</span>
+                                    <span class="tooltip-text" style="width: 280px; margin-left: -140px;"><b>定义 (VDI 4645):</b> SPF (Seasonal Performance Factor) 是指在<b>整个年度</b>内，工业热泵系统<b>总制热量</b>与<b>总耗电量</b>之比。<br><b>重要:</b> 此处的总耗电量<b>已包含</b>工业热泵主机、水泵、风机、电辅热等所有配套设备的耗电。</span>
                                 </div>
                                 <div class="tooltip-container gas-related">
                                     <label for="gasBoilerEfficiency" class="block text-sm font-medium text-gray-700">天然气锅炉效率 (%)</label>
@@ -288,7 +288,7 @@
                                 <div class="flex justify-between items-center">
                                     <div class="tooltip-container">
                                         <label class="block text-sm font-medium text-gray-700">
-                                            热泵电价时段 (总比例必须为100%)
+                                            工业热泵电价时段 (总比例必须为100%)
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
@@ -402,7 +402,7 @@
                              <h2 class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">6. 年度运维 (O&M) 成本 (万元/年)</h2>
                              <div class="input-group">
                                  <div class="tooltip-container hp-opex-related">
-                                    <label for="hpOpexCost" class="block text-sm font-medium text-gray-700">热泵系统</label>
+                                    <label for="hpOpexCost" class="block text-sm font-medium text-gray-700">工业热泵系统</label>
                                     <input type="number" id="hpOpexCost" value="2.5" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
                                     <span class="tooltip-text"><b>默认值: 2.5 万元/年</b><br>含人工及维保物料费。估算: 0.5万人工 + 1%*200万投资维保。</span>
                                  </div>
@@ -454,7 +454,7 @@
                             <div class="tooltip-container">
                                 <label for="lccYears" class="block text-sm font-medium text-gray-700">经济分析年限 (年)</label>
                                 <input type="number" id="lccYears" value="15" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
-                                <span class="tooltip-text"><b>默认值: 15 年</b><br>热泵系统及锅炉的典型经济寿命。</span>
+                                <span class="tooltip-text"><b>默认值: 15 年</b><br>工业热泵系统及锅炉的典型经济寿命。</span>
                             </div>
                             <div class="tooltip-container">
                                 <label for="discountRate" class="block text-sm font-medium text-gray-700">折现率 (基准收益率, %)</label>
@@ -486,7 +486,7 @@
                         <label for="enableScenarioComparison" class="ml-2 block text-sm font-medium text-gray-700">启用多方案对比</label>
                     </div>
                     <button id="saveScenarioBtn" class="text-sm bg-gray-400 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300 hidden cursor-not-allowed" disabled>
-                        暂存当前热泵方案 (请先计算)
+                        暂存当前工业热泵方案 (请先计算)
                     </button>
                 </div>
                 <div id="results-container" class="mt-8">
@@ -505,7 +505,7 @@
 
                 <div id="scenario-comparison-container" class="mt-8 bg-white p-6 rounded-xl shadow-md hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">已暂存的热泵方案 LCC 对比</h2>
+                        <h2 class="text-xl font-semibold">已暂存的工业热泵方案 LCC 对比</h2>
                         <div class="flex space-x-2">
                             <button id="undoClearBtn" class="text-sm bg-yellow-100 text-yellow-800 font-semibold py-2 px-3 rounded-lg hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-300 hidden">
                                 恢复列表
@@ -524,7 +524,7 @@
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">储能投资 (万)</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">COP</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年运行成本 (万)</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">热泵 LCC (万)</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">工业热泵 LCC (万)</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">对比基准</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">动态回收期 (PBP)</th>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">内部收益率 (IRR)</th>
