@@ -335,8 +335,8 @@ function setupComparisonToggles() {
     });
 }
 
-// ================= 变更点： V9.1 重写此函数 =================
-// *** V9.1 优化：解耦模式一和模式二的SPF/COP值 ***
+// ================= 变更点： V10.0 重写此函数 =================
+// *** V10.0 优化：解耦模式一和模式二的SPF/COP值 ***
 function setupModeSelector() {
     const modeStandard = document.getElementById('modeStandard');
     const modeHybrid = document.getElementById('modeHybrid');
@@ -349,7 +349,7 @@ function setupModeSelector() {
     const hpCopInput = document.getElementById('hpCop'); // *** 新增：获取输入框本身 ***
 
     if (!modeStandard || !modeHybrid || !hybridConfigInputs || !hpCopLabel || !hpCopInput) {
-        console.warn('V9.1 (模式选择) UI 元素未在 HTML 中完全找到。新版模式切换可能失效。');
+        console.warn('V10.0 (模式选择) UI 元素未在 HTML 中完全找到。新版模式切换可能失效。');
         return;
     }
 
@@ -361,7 +361,7 @@ function setupModeSelector() {
         // --- 2. 更改动态标签并加载对应的SPF值 (核心修改) ---
         if (isEnteringHybrid) {
             // 进入混合模式
-            hpCopLabel.textContent = '热泵在此工况下的 SPF';
+            hpCopLabel.textContent = '工业热泵在此工况下的 SPF';
             hpCopInput.value = spfHybridValue; // 加载混合模式的SPF
         } else {
             // 进入标准模式
@@ -402,7 +402,7 @@ function setupModeSelector() {
     hpCopInput.value = spfStandardValue; // 确保初始值为标准模式的SPF
     applyModeState(modeHybrid.checked); // 根据当前选中的模式，设置正确的标签和值
 }
-// *** V9.1 优化结束 ***
+// *** V10.0 优化结束 ***
 // ================= 变更结束 =================
 
 
@@ -569,7 +569,7 @@ function markResultsAsStale() {
         saveBtn.disabled = true;
         saveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
         saveBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-        saveBtn.textContent = '暂存当前热泵方案 (请先计算)';
+        saveBtn.textContent = '暂存当前工业热泵方案 (请先计算)';
         
     }
 }
@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPriceTierControls(); 
     setupScenarioControls(); 
     setupScenarioToggle(); 
-    setupModeSelector(); // V9.1 修改：调用新函数
+    setupModeSelector(); // V10.0 修改：调用新函数
 
     const allInputs = document.querySelectorAll('input[type="number"], input[type="checkbox"], select, input[type="text"]');
     allInputs.forEach(input => {
@@ -958,8 +958,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // V9.0: 检查 hpSystemDetails 是 100%HP 还是 混合系统
         const isHybrid = hpSystemDetails.isHybrid || false;
-        const hpCardTitleStatic = isHybrid ? '混合系统年运行成本 (第1年)' : '热泵系统年运行成本 (第1年)';
-        const hpCardTitleLCC = isHybrid ? `混合系统 LCC (${lccYears}年)` : `热泵系统 LCC (${lccYears}年)`;
+        const hpCardTitleStatic = isHybrid ? '混合系统年运行成本 (第1年)' : '工业热泵系统年运行成本 (第1年)';
+        const hpCardTitleLCC = isHybrid ? `混合系统 LCC (${lccYears}年)` : `工业热泵系统 LCC (${lccYears}年)`;
 
         // --- HP / Hybrid System Result Cards ---
         const hpCardStatic = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg result-card"><h3 class="font-bold text-lg text-blue-800">${hpCardTitleStatic}</h3><p class="text-2xl font-bold text-blue-600">${(hpSystemDetails.opex / 10000).toFixed(2)} 万元</p></div>`;
@@ -1047,9 +1047,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             </svg>
                             <span class="tooltip-text" style="width: 320px; margin-left: -160px;">
                                 <b>IEA/欧洲常用指标 (EPR):</b> 
-                                (锅炉产热成本) / (热泵产热成本)。<br>
-                                <b>EPR > 1.0</b> 时，热泵运行成本更低。<br>
-                                <b>EPR = 2.0</b> 意味着热泵成本是锅炉的50%。
+                                (锅炉产热成本) / (工业热泵产热成本)。<br>
+                                <b>EPR > 1.0</b> 时，工业热泵运行成本更低。<br>
+                                <b>EPR = 2.0</b> 意味着工业热泵成本是锅炉的50%。
                             </span>
                         </span>
                         <span class="font-bold ${(boiler.electricalPriceRatio > 1.0 || (boiler.electricalPriceRatio === null && boiler.key === 'electric')) ? 'text-green-600' : 'text-red-600'}">
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="space-y-1 pt-2 border-t">
                     <h5 class="font-semibold text-gray-700 text-md">视角: 全生命周期成本 (LCC)</h5>
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">${isHybrid ? '混合系统' : '热泵'} LCC:</span>
+                        <span class="text-gray-600">${isHybrid ? '混合系统' : '工业热泵'} LCC:</span>
                         <span class="font-semibold text-blue-700 text-right">${(hpSystemDetails.lcc.total / 10000).toFixed(2)} 万元</span>
                     </div>
                     <div class="flex justify-between text-sm">
@@ -1121,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const bestEnviro = positiveCO2Reducers.reduce((p, c) => (p.co2Reduction > c.co2Reduction) ? p : c);
             conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>替代 <b>${bestEnviro.name}</b> 的环境效益最为显著，年碳减排量可达 <b>${bestEnviro.co2Reduction.toFixed(2)}</b> 吨CO₂，相当于植树约 <b>${bestEnviro.treesPlanted.toLocaleString(undefined, {maximumFractionDigits: 0})}</b> 棵。</p>`;
         } else if (comparisons.length > 0) {
-             conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>根据当前参数，${isHybrid ? '混合' : '热泵'}方案相较于所选对比方案均无碳减排优势。</p>`;
+             conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>根据当前参数，${isHybrid ? '混合' : '工业热泵'}方案相较于所选对比方案均无碳减排优势。</p>`;
         }
          conclusionHTML += '</div>';
 
@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailedCalculations.annualHeatingDemandKWh = annualHeatingDemandKWh;
 
         if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
-            alert('请填写有效的制热负荷、年运行小时和热泵SPF。');
+            alert('请填写有效的制热负荷、年运行小时和工业热泵SPF。');
             return;
         }
 
@@ -1246,11 +1246,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- 6. V9.1 模式切换：检查 "方案 A" 是哪种计算模式 ---
+        // --- 6. V10.0 模式切换：检查 "方案 A" 是哪种计算模式 ---
         const isHybridMode = document.getElementById('modeHybrid') ? document.getElementById('modeHybrid').checked : false;
         detailedCalculations.isHybridMode = isHybridMode;
 
-        // --- 7. 计算热泵耗电 & 加权平均电价 (V9.0: 此处计算的是 100% 负荷下的情况，供电锅炉和V8模式使用) ---
+        // --- 7. 计算工业热泵耗电 & 加权平均电价 (V9.0: 此处计算的是 100% 负荷下的情况，供电锅炉和V8模式使用) ---
         const totalHpElec_FullLoad = (inputs.hpCop > 0) ? (annualHeatingDemandKWh / inputs.hpCop) : 0;
         let hpEnergyCost_FullLoad = 0;
         const hpEnergyCostDetails_FullLoad = { tiers: [] };
@@ -1277,11 +1277,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // =========================================================
         //
-        //               V9.1 逻辑分支开始
+        //               V10.0 逻辑分支开始
         //
         // =========================================================
 
-        let hpSystemDetails; // V9.1: 统一的 "方案 A" 实体
+        let hpSystemDetails; // V10.0: 统一的 "方案 A" 实体
 
         if (isHybridMode) {
             
@@ -1291,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const auxHeaterCapex = (parseFloat(document.getElementById('hybridAuxHeaterCapex').value) || 0) * 10000;
             const auxHeaterOpex = (parseFloat(document.getElementById('hybridAuxHeaterOpex').value) || 0) * 10000; // V9.0 新增
             
-            // V9.1: 不再读取 baselineType, 因为 "方案 B" 来自多选框
+            // V10.0: 不再读取 baselineType, 因为 "方案 B" 来自多选框
             detailedCalculations.hybridInputs = { hpLoadShare, auxHeaterType, auxHeaterCapex, auxHeaterOpex };
             
             // --- H-2. 拆分热负荷 ---
@@ -1300,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- H-3. 计算方案 A (混合系统) ---
             
-            // H-3a: 计算热泵部分
+            // H-3a: 计算工业热泵部分
             const totalHpElec_Hybrid = (inputs.hpCop > 0) ? (hpHeatingDemandKWh / inputs.hpCop) : 0;
             let hpEnergyCost_Hybrid = 0;
             const hpEnergyCostDetails_Hybrid = { tiers: [] };
@@ -1325,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const hpLCC_Hybrid = inputs.hpCapex + hpEnergyNPV_Hybrid + hpOpexNPV_Hybrid - hpSalvageNPV_Hybrid;
 
-            // V9.0 BUG 修复：将热泵部分存入 detailedCalculations.hp
+            // V9.0 BUG 修复：将工业热泵部分存入 detailedCalculations.hp
             const hpDetails = {
                 isHybridPart: true,
                 energyCost: hpEnergyCost_Hybrid, energyCostDetails: hpEnergyCostDetails_Hybrid,
@@ -1358,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // H-3c: 汇总混合系统 (方案 A)
             const hybridSystem = {
                 isHybrid: true,
-                name: "混合系统 (热泵 + " + auxDetails.name + ")",
+                name: "混合系统 (工业热泵 + " + auxDetails.name + ")",
                 energyCost: hpDetails.energyCost + auxDetails.energyCost,
                 opexCost: hpDetails.opexCost + auxDetails.opexCost,
                 opex: hpDetails.opex + auxDetails.opex, // 年总运行成本
@@ -1367,8 +1367,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cost_per_kwh_heat: annualHeatingDemandKWh > 0 ? ((hpDetails.energyCost + auxDetails.energyCost) / annualHeatingDemandKWh) : 0, // 混合产热成本
                 lcc: {
                     capex: hpDetails.lcc.capex + auxDetails.lcc.capex,
-                    capex_host: hpDetails.lcc.capex_host, // 仅热泵
-                    capex_storage: hpDetails.lcc.capex_storage, // 仅热泵
+                    capex_host: hpDetails.lcc.capex_host, // 仅工业热泵
+                    capex_storage: hpDetails.lcc.capex_storage, // 仅工业热泵
                     capex_aux: auxDetails.lcc.capex, // 辅助热源
                     energyNPV: hpDetails.lcc.energyNPV + auxDetails.lcc.energyNPV,
                     opexNPV: hpDetails.lcc.opexNPV + auxDetails.lcc.opexNPV,
@@ -1379,10 +1379,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             detailedCalculations.hybridSystem = hybridSystem; // 存入详细计算
             
-            // --- H-4. V9.1: 将混合系统赋给统一的 "方案 A" 实体 ---
+            // --- H-4. V10.0: 将混合系统赋给统一的 "方案 A" 实体 ---
             hpSystemDetails = hybridSystem;
 
-            // --- V9.1: 删除了 V9.0 的 H-4, H-5, H-6 (计算单一基准和渲染) ---
+            // --- V10.0: 删除了 V9.0 的 H-4, H-5, H-6 (计算单一基准和渲染) ---
 
 
         } else {
@@ -1392,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', () => {
             //
             // =========================================================
 
-            // --- S-1. 计算 100% 热泵方案 (方案A) ---
+            // --- S-1. 计算 100% 工业热泵方案 (方案A) ---
             // (V9.0 备注: 此处使用 V8.0 的 _FullLoad 变量)
             const hpOpex_Year1 = hpEnergyCost_FullLoad + inputs.hpOpexCost;
             const hpCo2 = totalHpElec_FullLoad * gridFactor;
@@ -1423,20 +1423,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
             
-            // --- S-1b. V9.1: 将 100% 热泵赋给统一的 "方案 A" 实体 ---
+            // --- S-1b. V10.0: 将 100% 工业热泵赋给统一的 "方案 A" 实体 ---
             hpSystemDetails = detailedCalculations.hp; 
 
-            // --- V9.1: 删除了 V8.0 的 S-2, S-3, S-4 (计算对比和渲染) ---
+            // --- V10.0: 删除了 V8.0 的 S-2, S-3, S-4 (计算对比和渲染) ---
             // (这些逻辑被移到了 if/else 块的外部)
         }
 
         // =========================================================
         //
-        //       V9.1 统一对比与渲染 (合并 V8.0 和 V9.0)
+        //       V10.0 统一对比与渲染 (合并 V8.0 和 V9.0)
         //
         // =========================================================
 
-        // --- S-2. (V9.1) 循环计算所有 "方案 B" (对比基准) ---
+        // --- S-2. (V10.0) 循环计算所有 "方案 B" (对比基准) ---
         // (此逻辑来自 V8.0 S-2)
         const results = [];
         
@@ -1471,7 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             results.push(steamDetails);
         }
 
-        // --- S-3. (V9.1) 计算 ROI (方案A vs 方案B, C, D...) ---
+        // --- S-3. (V10.0) 计算 ROI (方案A vs 方案B, C, D...) ---
         // (此逻辑来自 V8.0 S-3, 但 "hpDetails" 已被替换为 "hpSystemDetails")
         const comparisons = results.map(boiler => {
             const energyCostSaving = boiler.energyCost - hpSystemDetails.energyCost;
@@ -1533,13 +1533,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         detailedCalculations.comparisons = comparisons;
 
-        // --- S-4. (V9.1) 统一渲染 ---
+        // --- S-4. (V10.0) 统一渲染 ---
         renderResults(hpSystemDetails, comparisons, lccYears, discountRate);
 
 
         // =========================================================
         //
-        //               V9.1 逻辑分支结束
+        //               V10.0 逻辑分支结束
         //
         // =========================================================
 
@@ -1567,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hpCop = parseFloat(document.getElementById('hpCop').value) || 0;
             const comparisons = detailedCalculations.comparisons || [];
             
-            // V9.1: 此处逻辑不变，isHybridMode (全局) 和 detailedCalculations (全局) 是正确的
+            // V10.0: 此处逻辑不变，isHybridMode (全局) 和 detailedCalculations (全局) 是正确的
             const systemToSave = isHybridMode ? detailedCalculations.hybridSystem : detailedCalculations.hp;
             
             if (systemToSave && comparisons.length > 0) {
@@ -1653,7 +1653,7 @@ LCC = CAPEX + NPV(Energy) + NPV(O&M) - NPV(Salvage)
         <h4>2. 净现值 (NPV)</h4>
         <p class="authority">NPV (Net Present Value) 是项目全周期内产生的净现金流（节省的成本 - 额外投资）按折现率折算到今天的总和。<b>NPV > 0 代表项目可行。</b></p>
         <div class="formula-block">
-NPV = (LCC_基准 - LCC_热泵) = (节省的LCC)
+NPV = (LCC_基准 - LCC_工业热泵) = (节省的LCC)
 </div>
 
         <h4>3. 内部收益率 (IRR)</h4>
@@ -1691,13 +1691,13 @@ NPV(CashFlow, IRR) = 0
             <p class="font-semibold"><b>混合系统产热成本:</b> ${f(hybridSystem.cost_per_kwh_heat, 4)} 元/kWh_热</p>
             <hr>
 
-            <h4 class="font-bold text-md text-gray-800" style="color: #1d4ed8;">2a. 混合系统 - 热泵部分 (承担 ${hpLoadSharePercent}% 负荷)</h4>
-            <p><b>热泵制热量:</b> ${f(annualHeatingDemandKWh)} * ${hpLoadSharePercent}% = ${f(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0) * inputs.hpCop)} kWh</p>
+            <h4 class="font-bold text-md text-gray-800" style="color: #1d4ed8;">2a. 混合系统 - 工业热泵部分 (承担 ${hpLoadSharePercent}% 负荷)</h4>
+            <p><b>工业热泵制热量:</b> ${f(annualHeatingDemandKWh)} * ${hpLoadSharePercent}% = ${f(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0) * inputs.hpCop)} kWh</p>
             <p><b>年总电耗:</b> ${f(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0))} kWh</p>
             ${hp.energyCostDetails.tiers.map(t => `<p class="pl-4">↳ <b>${t.name}:</b> ${f(t.elec)} kWh * ${t.price} 元/kWh = ${fYuan(t.cost)} 元</p>`).join('')}
-            <p><b>年能源成本 (热泵):</b> ${fYuan(hp.energyCost)} 元</p>
-            <p><b>年运维(O&M)成本 (热泵):</b> ${fYuan(hp.opexCost)} 元</p>
-            <p><b>年碳排放量 (热泵):</b> ${f(hp.co2)} kg</p>
+            <p><b>年能源成本 (工业热泵):</b> ${fYuan(hp.energyCost)} 元</p>
+            <p><b>年运维(O&M)成本 (工业热泵):</b> ${fYuan(hp.opexCost)} 元</p>
+            <p><b>年碳排放量 (工业热泵):</b> ${f(hp.co2)} kg</p>
             
             <h4 class="font-bold text-md text-gray-800" style="color: #7f1d1d;">2b. 混合系统 - 辅助热源 (${hybrid_aux.name}, 承担 ${auxLoadSharePercent}% 负荷)</h4>
             <p><b>辅助热源制热量:</b> ${f(annualHeatingDemandKWh * (1.0 - detailedCalculations.hybridInputs.hpLoadShare))} kWh</p>
@@ -1710,7 +1710,7 @@ NPV(CashFlow, IRR) = 0
             <h4 class="font-bold text-md text-gray-800">3. 方案B: 对比基准 (100% 传统热源)</h4>
             `;
         
-        // V9.1: 循环显示所有对比基准 (方案 B)
+        // V10.0: 循环显示所有对比基准 (方案 B)
         const boilers = [gas, fuel, coal, biomass, electric, steam].filter(Boolean); // 过滤掉未计算的
         boilers.forEach(b => {
              detailsHTML += `
@@ -1731,7 +1731,7 @@ NPV(CashFlow, IRR) = 0
             <h4 class="font-bold text-md text-gray-800">4. LCC 与 ROI 对比 (混合 vs 基准)</h4>
         `;
         
-        // V9.1: 循环显示所有对比结果
+        // V10.0: 循环显示所有对比结果
         detailedCalculations.comparisons.forEach(c => {
             const boiler = detailedCalculations[c.key];
             detailsHTML += `
@@ -1768,13 +1768,13 @@ NPV(CashFlow, IRR) = 0
             <p><b>年总制热量:</b> ${f(annualHeatingDemandKWh)} kWh = ${f(annualHeatingDemandKWh * 3.6)} MJ</p>
             <hr>
             
-            <h4 class="font-bold text-md text-gray-800">2. 热泵系统计算 (第1年)</h4>
+            <h4 class="font-bold text-md text-gray-800">2. 工业热泵系统计算 (第1年)</h4>
             <p><b>年总电耗:</b> ${f(annualHeatingDemandKWh)} kWh (年总制热量) / ${document.getElementById('hpCop').value} (SPF) = ${f(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0))} kWh</p>
             ${hpEnergyCostDetailsHTML}
             <p><b>年运维(O&M)成本:</b> ${fYuan(hp.opexCost)} 元</p>
             <p><b>年总运行成本 (第1年):</b> ${fYuan(hp.energyCost)} + ${fYuan(hp.opexCost)} = ${fYuan(hp.opex)} 元 ≈ <b>${fWan(hp.opex)} 万元</b></p>
             <p><b>加权平均电价:</b> ${f(detailedCalculations.weightedAvgElecPrice, 4)} 元/kWh</p>
-            <p class="font-semibold"><b>热泵产热成本:</b> ${f(detailedCalculations.weightedAvgElecPrice, 4)} 元/kWh / ${document.getElementById('hpCop').value} SPF = <b>${f(hp.cost_per_kwh_heat, 4)} 元/kWh_热</b></p>
+            <p class="font-semibold"><b>工业热泵产热成本:</b> ${f(detailedCalculations.weightedAvgElecPrice, 4)} 元/kWh / ${document.getElementById('hpCop').value} SPF = <b>${f(hp.cost_per_kwh_heat, 4)} 元/kWh_热</b></p>
             <p><b>年碳排放量 (使用${gridFactorLabel}):</b> ${f(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0))} kWh * ${gridFactorToDisplay} kg/kWh = ${f(hp.co2)} kg</p>
             <hr>
             <h4 class="font-bold text-md text-gray-800">3. 对比方案计算 (第1年)</h4>
@@ -1816,8 +1816,8 @@ NPV(CashFlow, IRR) = 0
             const boiler = detailedCalculations[c.key];
             detailsHTML += `
                  <div class="pt-2 border-t mt-2">
-                    <p><b>对比: ${hp.isHybrid ? '混合系统' : '热泵'} vs ${c.name}</b></p>
-                    <p class="pl-4"><b>热泵 LCC:</b> ${fWan(hp.lcc.total)} 万元</p>
+                    <p><b>对比: ${hp.isHybrid ? '混合系统' : '工业热泵'} vs ${c.name}</b></p>
+                    <p class="pl-4"><b>工业热泵 LCC:</b> ${fWan(hp.lcc.total)} 万元</p>
                     <p class="pl-4"><b>${c.name} LCC:</b> ${fWan(boiler.lcc.total)} 万元</p>
                     <p class="pl-4"><b>额外投资 (ΔInvest):</b> ${fWan(hp.lcc.capex)} - ${fWan(boiler.lcc.capex)} = <b>${fWan(c.investmentDiff)} 万元</b></p>
                     <p class="pl-4"><b>年节省总成本 (Save_Y1):</b> ${fWan(boiler.opex)} - ${fWan(hp.opex)} = <b>${fWan(c.opexSaving)} 万元</b></p>
@@ -1832,7 +1832,7 @@ NPV(CashFlow, IRR) = 0
     document.getElementById('calculation-details').innerHTML = detailsHTML;
 }
 
-/* --- V9.0: 风险分析函数 (内容不变) --- */
+/* --- V10.0: 风险分析函数 --- */
 function populateRiskAnalysisDetails() {
     const riskHTML = `
         <h3 class="font-bold text-lg text-gray-900 border-b pb-2 mb-4">工业热泵投资风险及对策分析</h3>
@@ -1840,7 +1840,7 @@ function populateRiskAnalysisDetails() {
         <h4>1. 政策与市场风险</h4>
         <ul class="list-disc list-inside text-sm space-y-1">
             <li>
-                <b>风险 (电价波动):</b> "峰谷尖"电价政策调整，尤其是谷电价格上涨或峰电涨幅不及预期，可能导致热泵（特别是带储能的）运行成本高于预期，拉长投资回收期。
+                <b>风险 (电价波动):</b> "峰谷尖"电价政策调整，尤其是谷电价格上涨或峰电涨幅不及预期，可能导致工业热泵（特别是带储能的）运行成本高于预期，拉长投资回收期。
             </li>
             <li>
                 <b>对策:</b> 
@@ -1861,21 +1861,21 @@ function populateRiskAnalysisDetails() {
         <h4>2. 技术与运行风险</h4>
         <ul class="list-disc list-inside text-sm space-y-1">
             <li>
-                <b>风险 (性能衰减/SPF不达标):</b> 热泵在极端天气（严寒）下制热能力下降，或全年综合能效系数(SPF)低于设计值(3.0)，导致实际运行电耗过高。
+                <b>风险 (性能衰减/SPF不达标):</b> 工业热泵在极端天气（严寒）下制热能力下降，或全年综合能效系数(SPF)低于设计值(3.0)，导致实际运行电耗过高。
             </li>
             <li>
                 <b>对策:</b> 
                 <b>(1) 选型匹配:</b> 必须基于项目地最冷月平均工况（而非年平均）进行主机选型和制热量核算。
-                <b>(2) 耦合设计 (V9.0):</b> 采用“热泵 + 辅助热源”（如燃气或电加热）的耦合方案，热泵承担中低温柔区（高效区），辅助热源承担高温区，保障极端工况下的供热，并优化全系统LCC。
+                <b>(2) 耦合设计 (V9.0):</b> 采用“工业热泵 + 辅助热源”（如燃气或电加热）的耦合方案，工业热泵承担中低温柔区（高效区），辅助热源承担高温区，保障极端工况下的供热，并优化全系统LCC。
                 <b>(3) 明确SPF:</b> 投标和设计阶段应明确SPF的计算边界（是否包含水泵、辅热等），并将其作为验收核心指标。
             </li>
             <li>
-                <b>风险 (负荷匹配度低):</b> 生产线实际用热负荷（如间歇性用热）与热泵额定负荷不匹配，导致热泵频繁启停或低效运行。
+                <b>风险 (负荷匹配度低):</b> 生产线实际用热负荷（如间歇性用热）与工业热泵额定负荷不匹配，导致工业热泵频繁启停或低效运行。
             </li>
             <li>
                 <b>对策:</b> 
-                <b>(1) 储能缓冲:</b> 对于负荷波动大的工况（如电镀、清洗线），必须配备适当容量的储热水箱（储能系统），实现“削峰填谷”，允许热泵在谷电时段稳定运行，在峰时段供热。
-                <b>(2) 变频调节:</b> 优先采用变频热泵机组，使其在 30% ~ 100% 负荷下均能高效运行。
+                <b>(1) 储能缓冲:</b> 对于负荷波动大的工况（如电镀、清洗线），必须配备适当容量的储热水箱（储能系统），实现“削峰填谷”，允许工业热泵在谷电时段稳定运行，在峰时段供热。
+                <b>(2) 变频调节:</b> 优先采用变频工业热泵机组，使其在 30% ~ 100% 负荷下均能高效运行。
             </li>
         </ul>
 
@@ -1902,7 +1902,7 @@ function populateRiskAnalysisDetails() {
     document.getElementById('risk-analysis-details').innerHTML = riskHTML;
 }
 
-/* --- V9.0: A4打印函数 (已更新) --- */
+/* --- V10.0: A4打印函数 (已更新) --- */
 function buildPrintReport() {
     const { isHybridMode, lccParams, hp, comparisons, inputs, hybridSystem, baselineSystem } = detailedCalculations;
 
@@ -1914,18 +1914,18 @@ function buildPrintReport() {
     const fInt = (n) => (n).toLocaleString(undefined, {maximumFractionDigits: 0});
 
     const projectName = inputs.projectName || document.getElementById('projectName').value;
-    const reportDate = new Date().toLocaleDateString('zh-CN');
+    const reportDate = new Date().toLocaleString('zh-CN');
     let reportHTML = `
         <div class="print-report-header">
             <h2>${projectName} 项目</h2>
-            <h1>热泵经济与环境效益分析报告</h1>
+            <h1>工业热泵经济与环境效益分析报告</h1>
             <p>报告日期: ${reportDate}</p>
         </div>
         <div class="print-report-section">
             <h3>1. 核心输入参数</h3>
             <table class="print-report-table">
                 <tr><td class="col-param">项目名称</td><td>${projectName}</td></tr>
-                <tr><td class="col-param">制热负荷 (kW)</td><td class="align-right">${fInt(inputs.heatingLoad)}</td></tr>
+                <tr><td class="col-param">制热负荷 (kW)</td><td class="align-right">${fNum(inputs.heatingLoad, 1)}</td></tr>
                 <tr><td class="col-param">年运行小时 (h)</td><td class="align-right">${fInt(inputs.operatingHours)}</td></tr>
                 <tr><td class="col-param">经济分析年限 (年)</td><td class="align-right">${lccParams.lccYears}</td></tr>
                 <tr><td class="col-param">折现率 (基准收益率)</td><td class="align-right">${fPercent(lccParams.discountRate, 1)}</td></tr>
@@ -1937,7 +1937,7 @@ function buildPrintReport() {
         // --- V9.0 打印报告 ---
         const { hybridInputs } = detailedCalculations;
         
-        // V9.1: 打印报告现在需要处理多个对比基准
+        // V10.0: 打印报告现在需要处理多个对比基准
         
         reportHTML += `
             <div class="print-report-section">
@@ -1954,7 +1954,7 @@ function buildPrintReport() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>方案A: ${hybridSystem.name}</strong><br><small>(热泵 ${fPercent(hybridInputs.hpLoadShare, 0)}% + ${detailedCalculations.hybrid_aux.name} ${fPercent(1-hybridInputs.hpLoadShare, 0)}%)</small></td>
+                            <td><strong>方案A: ${hybridSystem.name}</strong><br><small>(工业热泵 ${fPercent(hybridInputs.hpLoadShare, 0)} + ${detailedCalculations.hybrid_aux.name} ${fPercent(1-hybridInputs.hpLoadShare, 0)})</small></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.lcc.capex)}</strong></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.energyCost)}</strong></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.opexCost)}</strong></td>
@@ -1962,7 +1962,7 @@ function buildPrintReport() {
                         </tr>
         `;
         
-        // V9.1: 循环添加对比方案 (方案 B)
+        // V10.0: 循环添加对比方案 (方案 B)
         comparisons.forEach(c => {
             const boilerData = detailedCalculations[c.key];
             reportHTML += `
@@ -1997,7 +1997,7 @@ function buildPrintReport() {
                     <tbody>
         `;
         
-        // V9.1: 循环添加对比结果
+        // V10.0: 循环添加对比结果
         comparisons.forEach(c => {
              reportHTML += `
                 <tr>
@@ -2035,7 +2035,7 @@ function buildPrintReport() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>热泵方案 (SPF: ${inputs.hpCop.toFixed(2)})</strong></td>
+                            <td><strong>工业热泵方案 (SPF: ${inputs.hpCop.toFixed(2)})</strong></td>
                             <td class="align-right"><strong>${fWan(hp.lcc.capex)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.energyCost)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.opexCost)}</strong></td>
@@ -2060,7 +2060,7 @@ function buildPrintReport() {
                 </table>
             </div>
             <div class="print-report-section">
-                <h3>3. 核心输出：经济与环境效益 (对比热泵方案)</h3>
+                <h3>3. 核心输出：经济与环境效益 (对比工业热泵方案)</h3>
                 <table class="print-report-table">
                     <thead>
                         <tr>
