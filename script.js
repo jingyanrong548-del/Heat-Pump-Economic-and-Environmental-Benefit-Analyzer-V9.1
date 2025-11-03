@@ -564,7 +564,7 @@ function markResultsAsStale() {
         document.getElementById('stale-results-notice').classList.remove('hidden');
         document.getElementById('results-container').classList.add('stale');
 
-        // *** 新增：禁用暂存按钮 ***
+        // *** V10.0 修复：禁用暂存按钮 ***
         const saveBtn = document.getElementById('saveScenarioBtn');
         saveBtn.disabled = true;
         saveBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
@@ -1910,7 +1910,8 @@ function buildPrintReport() {
     const fPercent = (n, p = 1) => (n === null || !isFinite(n)) ? 'N/A' : `${(n * 100).toFixed(p)} %`;
     const fYears = (n) => (n === null || !isFinite(n)) ? '无法回收' : `${n.toFixed(2)}`;
     const fTon = (n) => (n).toFixed(2);
-    const fNum = (n, p = 1) => (n === null || !isFinite(n) || n === 0) ? 'N/A' : n.toFixed(p);
+    // V10.0 修复 Bug 1 (fInt -> fNum): fNum现在是格式化带小数的数字的标准
+    const fNum = (n, p = 1) => (n === null || !isFinite(n) || n === 0) ? 'N/A' : n.toLocaleString(undefined, {minimumFractionDigits: p, maximumFractionDigits: p});
     const fInt = (n) => (n).toLocaleString(undefined, {maximumFractionDigits: 0});
 
     const projectName = inputs.projectName || document.getElementById('projectName').value;
@@ -2074,11 +2075,12 @@ function buildPrintReport() {
                     </thead>
                     <tbody>
         `;
+        // V10.0 修复：确保 fNum(..., 2) 用于EPR，因为它也可能需要小数
         comparisons.forEach(c => {
             reportHTML += `
                 <tr>
                     <td>vs. ${c.name}</td>
-                    <td class.align-right">${fWan(c.lccSaving)}</td>
+                    <td class="align-right">${fWan(c.lccSaving)}</td>
                     <td class="align-right">${fPercent(c.irr)}</td>
                     <td class="align-right">${fYears(c.dynamicPBP)}</td>
                     <td class="align-right">${fNum(c.electricalPriceRatio, 2)}</td>
