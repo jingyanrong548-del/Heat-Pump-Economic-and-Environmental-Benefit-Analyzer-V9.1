@@ -2,7 +2,7 @@
 import { fWan, fTon, fCop, fPercent, fYears } from './utils.js';
 
 // --- 模块内部状态 ---
-// ... existing code ...
+let savedScenarios = [];
 let lastSavedScenarios = []; // 用于恢复
 
 // --- 私有辅助函数 ---
@@ -11,71 +11,73 @@ let lastSavedScenarios = []; // 用于恢复
  * 将暂存的方案渲染到UI表格中
  */
 function renderScenarioTable() {
-// ... existing code ...
+    const container = document.getElementById('scenario-comparison-container');
+    const tableWrapper = document.getElementById('scenario-table-wrapper'); 
     const tableBody = document.getElementById('scenario-comparison-table').querySelector('tbody');
     const summaryContainer = document.getElementById('scenario-summary');
-// ... existing code ...
+    const scenarioToggle = document.getElementById('enableScenarioComparison');
     const clearBtn = document.getElementById('clearScenariosBtn');
     const undoBtn = document.getElementById('undoClearBtn');
 
     if (!scenarioToggle.checked) {
-// ... existing code ...
+        container.classList.add('hidden');
         return;
     }
     container.classList.remove('hidden'); 
 
     if (savedScenarios.length === 0) {
-// ... existing code ...
+        tableWrapper.classList.add('hidden'); 
+        summaryContainer.classList.add('hidden');
         
         if (lastSavedScenarios.length > 0) {
             clearBtn.classList.add('hidden');
-// ... existing code ...
+            undoBtn.classList.remove('hidden');
         } else {
             clearBtn.classList.add('hidden'); 
-// ... existing code ...
+            undoBtn.classList.add('hidden');
         }
         return; 
     }
 
     tableWrapper.classList.remove('hidden'); 
-// ... existing code ...
+    summaryContainer.classList.remove('hidden');
     clearBtn.classList.remove('hidden');
     undoBtn.classList.add('hidden');
 
     tableBody.innerHTML = '';
-// ... existing code ...
+    let summaryHTML = '';
 
     const minLCC = Math.min(...savedScenarios.map(s => s.lcc));
 
     savedScenarios.forEach((s, index) => {
-// ... existing code ...
+        const isBestLCC = s.lcc === minLCC;
+        const row = document.createElement('tr');
         row.className = isBestLCC ? 'bg-green-50' : '';
         
         row.innerHTML = `
-// ... existing code ...
             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium ${isBestLCC ? 'text-green-900' : 'text-gray-900'}">${s.name}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${fWan(s.totalCapex)}</td>
-// ... existing code ...
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${fWan(s.hpCapex)}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${fWan(s.storageCapex)}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${fCop(s.hpCop)}</td>
-// ... existing code ...
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700">${fWan(s.opex)}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm ${isBestLCC ? 'font-bold text-green-700' : 'text-gray-700'}">${fWan(s.lcc)} ${isBestLCC ? ' (LCC最优)' : ''}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${s.baselineName}</td>
-// ... existing code ...
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-blue-700">${fYears(s.dynamicPBP)}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-blue-700">${fPercent(s.irr)}</td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-green-700">${fTon(s.co2)}</td>
-// ... existing code ...
+        `;
         tableBody.appendChild(row);
     });
 
     if (savedScenarios.length > 0) {
-// ... existing code ...
+        summaryHTML = `<h4 class="font-bold text-md text-indigo-700 mb-2">多方案对比总结:</h4>`;
         
         const bestLCC = savedScenarios.reduce((p, c) => (p.lcc < c.lcc) ? p : c);
         summaryHTML += `<p>• <b>LCC (全寿命周期成本) 最优:</b> 方案 "<b>${bestLCC.name}</b>"，总成本为 <b>${fWan(bestLCC.lcc)} 万元</b>。</p>`;
 
         const validIRRs = savedScenarios.filter(s => s.irr !== null && isFinite(s.irr));
-// ... existing code ...
+        if (validIRRs.length > 0) {
             const bestIRR = validIRRs.reduce((p, c) => (p.irr > c.irr) ? p : c);
             // V11.0: 更新总结文本
             summaryHTML += `<p>• <b>IRR (内部收益率, 税后) 最高:</b> 方案 "<b>${bestIRR.name}</b>"，IRR 高达 <b>${fPercent(bestIRR.irr)}</b> (对比${bestIRR.baselineName})。</p>`;
@@ -84,7 +86,7 @@ function renderScenarioTable() {
         }
 
         const validPBPs = savedScenarios.filter(s => s.dynamicPBP !== null && isFinite(s.dynamicPBP));
-// ... existing code ...
+        if (validPBPs.length > 0) {
             const bestPBP = validPBPs.reduce((p, c) => (p.dynamicPBP < c.dynamicPBP) ? p : c);
             // V11.0: 更新总结文本
             summaryHTML += `<p>• <b>PBP (动态回收期, 税后) 最短:</b> 方案 "<b>${bestPBP.name}</b>"，回收期仅 <b>${fYears(bestPBP.dynamicPBP)}</b> (对比${bestPBP.baselineName})。</p>`;
@@ -93,7 +95,7 @@ function renderScenarioTable() {
         }
 
         const bestCO2 = savedScenarios.reduce((p, c) => (p.co2 < c.co2) ? p : c);
-// ... existing code ...
+        summaryHTML += `<p>• <b>环境效益最优 (年碳排最低):</b> 方案 "<b>${bestCO2.name}</b>"，年碳排放 <b>${fTon(bestCO2.co2)} 吨</b>。</p>`;
 
         summaryContainer.innerHTML = summaryHTML;
     }
@@ -103,18 +105,18 @@ function renderScenarioTable() {
  * 设置 "启用多方案对比" 勾选框
  */
 function setupScenarioToggle() {
-// ... existing code ...
+    const toggle = document.getElementById('enableScenarioComparison');
     const saveBtn = document.getElementById('saveScenarioBtn');
     const tableContainer = document.getElementById('scenario-comparison-container');
 
     toggle.addEventListener('change', () => {
-// ... existing code ...
+        if (toggle.checked) {
             saveBtn.classList.remove('hidden');
             renderScenarioTable();
-// ... existing code ...
+        } else {
             saveBtn.classList.add('hidden');
             tableContainer.classList.add('hidden');
-// ... existing code ...
+        }
     });
 }
 
@@ -128,32 +130,34 @@ function setupScenarioToggle() {
  * @param {object} baselineComparison - (可选) 用于显示PBP/IRR的对比基准
  */
 export function saveHpScenario(name, hpDetails, hpCop, baselineComparison) {
-// ... existing code ...
+    const isHybrid = hpDetails.isHybrid || false;
+    let finalName = `${name} ${isHybrid ? '(混合)' : ''}`;
     
     if (isHybrid && !finalName.includes('(混合)')) {
-// ... existing code ...
+         finalName += ' (混合)';
     }
 
     let counter = 1;
-// ... existing code ...
+    while (savedScenarios.some(s => s.name === finalName)) {
         finalName = `${name} ${isHybrid ? '(混合)' : ''} (${counter++})`;
     }
 
     const scenario = { 
-// ... existing code ...
+        name: finalName, 
         lcc: hpDetails.lcc.total, 
         opex: hpDetails.opex, 
-// ... existing code ...
+        co2: hpDetails.co2,
         hpCapex: hpDetails.lcc.capex_host,
         storageCapex: hpDetails.lcc.capex_storage,
-// ... existing code ...
+        totalCapex: hpDetails.lcc.capex,
         hpCop: hpCop, 
         baselineName: baselineComparison ? baselineComparison.name : '无对比',
-// ... existing code ...
+        // V11.1 BUG修复: 补充上次遗漏的 dynamicPBP
+        dynamicPBP: baselineComparison ? baselineComparison.dynamicPBP : null,
         irr: baselineComparison ? baselineComparison.irr : null
     };
     savedScenarios.push(scenario);
-// ... existing code ...
+    renderScenarioTable();
 
     lastSavedScenarios = [];
 }
@@ -162,26 +166,28 @@ export function saveHpScenario(name, hpDetails, hpCop, baselineComparison) {
  * 初始化 "清空"、"恢复" 和 "启用" 按钮
  */
 export function initializeScenarioControls() {
-// ... existing code ...
+    const clearBtn = document.getElementById('clearScenariosBtn');
     const undoBtn = document.getElementById('undoClearBtn');
 
     clearBtn.addEventListener('click', () => {
-// ... existing code ...
+        if (savedScenarios.length === 0) return; 
 
-        if (confirm('确定要清空所有已暂存的方案吗？')) {
+        // V11.1 BUG修复: 移除 confirm()
+        // if (confirm('确定要清空所有已暂存的方案吗？')) {
             lastSavedScenarios = [...savedScenarios];
-// ... existing code ...
+            savedScenarios = [];
             renderScenarioTable();
-        }
+        // }
     });
 
     undoBtn.addEventListener('click', () => {
-// ... existing code ...
+        if (lastSavedScenarios.length === 0) return; 
 
         savedScenarios = [...lastSavedScenarios];
-// ... existing code ...
+        lastSavedScenarios = [];
         renderScenarioTable();
     });
 
     setupScenarioToggle();
 }
+

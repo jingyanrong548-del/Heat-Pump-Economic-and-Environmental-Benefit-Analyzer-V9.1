@@ -99,9 +99,19 @@ function bindPostCalculationButtons(results) {
             saveHpScenario(projectName, hpSystemDetails, hpCop, baselineComparison);
             uiRenderer.setSaveButtonState('saved');
         } else if (hpSystemDetails && comparisons.length === 0) {
-             alert('无法暂存，因为没有勾选任何对比方案。');
+             // V11.1 BUG修复: 移除 alert()
+             uiRenderer.setSaveButtonState('disabled', '无法暂存 (无对比方案)');
+             setTimeout(() => {
+                 if (resultsAreStale) {
+                    uiRenderer.setSaveButtonState('disabled', '暂存当前工业热泵方案 (请先计算)');
+                 } else {
+                    uiRenderer.setSaveButtonState('enabled');
+                 }
+             }, 2500);
         } else {
-            alert('无法暂存，计算数据不存在。');
+             // V11.1 BUG修复: 移除 alert()
+             console.error("Save failed: hpSystemDetails is missing.");
+             uiRenderer.setSaveButtonState('disabled', '无法暂存 (计算数据丢失)');
         }
     });
 }
@@ -118,3 +128,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. 绑定主计算按钮
     document.getElementById('calculateBtn').addEventListener('click', onCalculateClick);
 });
+
