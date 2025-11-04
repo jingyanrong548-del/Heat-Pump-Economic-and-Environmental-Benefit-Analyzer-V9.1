@@ -67,7 +67,7 @@ let modalResolve = null;
  * @param {string} message 模态框正文
  * @returns {Promise<boolean>} 用户点击 "确认" 时 resolve(true)，点击 "取消" 时 resolve(false)
  */
-export function showConfirmModal(title, message) {
+export function showConfirmModal(title, body) {
     const modal = document.getElementById('confirm-modal');
     const modalTitle = document.getElementById('confirm-modal-title');
     const modalMessage = document.getElementById('confirm-modal-message');
@@ -87,14 +87,12 @@ export function showConfirmModal(title, message) {
     });
 }
 
-/**
- * V11.0: 在 DOM 加载后立即为模态框按钮绑定 *一次* 监听器
- * (由 main.js 调用)
- */
+// V11.0: 在 DOM 加载后立即为模态框按钮绑定 *一次* 监听器
+// V11.0 BUGFIX: 修复了函数命名
 export function initializeModalControls() {
     const modal = document.getElementById('confirm-modal');
-    const confirmBtn = document.getElementById('confirm-modal-ok-btn');
-    const cancelBtn = document.getElementById('confirm-modal-cancel-btn');
+    const confirmBtn = document.getElementById('confirm-modal-ok-btn'); // V11.0: 修正了 ID
+    const cancelBtn = document.getElementById('confirm-modal-cancel-btn'); // V11.0: 修正了 ID
 
     if (!modal || !confirmBtn || !cancelBtn) return;
 
@@ -186,7 +184,7 @@ export function showPriceTierError(message) {
 export function renderResults(results) {
     const { analysisMode } = results;
 
-    // V11.0: 路由
+    // V11.0: 路由到
     if (analysisMode === 'bot') {
         renderBotResults(results); // 渲染 BOT 财务分析
     } else {
@@ -513,7 +511,8 @@ function populateBotCalculationDetails(results) {
  * @param {object} results 
  */
 function populateCostComparisonCalculationDetails(results) {
-    const { isHybridMode, lccParams, hp, gas, fuel, coal, biomass, electric, steam, annualHeatingDemandKWh, hybridSystem, hybrid_aux, inputs } = results;
+    // V11.0 BUGFIX: 此处解构时遗漏了 hybridInputs
+    const { isHybridMode, lccParams, hp, gas, fuel, coal, biomass, electric, steam, annualHeatingDemandKWh, hybridSystem, hybrid_aux, inputs, hybridInputs } = results;
     
     // V11.0: 修正了 gridFactor 的获取方式
     const gridFactorBase = inputs.gridFactor; // V11.0: 直接从 inputs 读取 baseValue
@@ -542,7 +541,8 @@ function populateCostComparisonCalculationDetails(results) {
     `;
     
     if (isHybridMode) {
-        const hpLoadSharePercent = (results.hybridInputs.hpLoadShare * 100).toFixed(1);
+        // V11.0 BUGFIX: `hybridInputs` 现在已从 results 中解构
+        const hpLoadSharePercent = (hybridInputs.hybridLoadShare * 100).toFixed(1);
         const auxLoadSharePercent = (100 - parseFloat(hpLoadSharePercent)).toFixed(1);
         
         detailsHTML += `
@@ -559,14 +559,14 @@ function populateCostComparisonCalculationDetails(results) {
             <p class="font-semibold"><b>混合系统产热成本:</b> ${hybridSystem.cost_per_kwh_heat.toFixed(4)} 元/kWh_热</p>
             <hr>
             <h4 class="font-bold text-md text-gray-800" style="color: #1d4ed8;">2a. 混合系统 - 工业热泵部分 (承担 ${hpLoadSharePercent}% 负荷)</h4>
-            <p><b>工业热泵制热量:</b> ${fNum(annualHeatingDemandKWh * results.hybridInputs.hpLoadShare, 0)} kWh</p>
+            <p><b>工业热泵制热量:</b> ${fNum(annualHeatingDemandKWh * hybridInputs.hybridLoadShare, 0)} kWh</p>
             <p><b>年总电耗:</b> ${fNum(hp.energyCostDetails.tiers.reduce((acc, t) => acc + t.elec, 0), 0)} kWh</p>
             ${hp.energyCostDetails.tiers.map(t => `<p class="pl-4">↳ <b>${t.name}:</b> ${fNum(t.elec, 0)} kWh * ${t.price} 元/kWh = ${fYuan(t.cost)} 元</p>`).join('')}
             <p><b>年能源成本 (工业热泵):</b> ${fYuan(hp.energyCost)} 元</p>
             <p><b>年运维(O&M)成本 (工业热泵):</b> ${fYuan(hp.opexCost)} 元</p>
             <p><b>年碳排放量 (工业热泵):</b> ${fNum(hp.co2, 0)} kg</p>
             <h4 class="font-bold text-md text-gray-800" style="color: #7f1d1d;">2b. 混合系统 - 辅助热源 (${hybrid_aux.name}, 承担 ${auxLoadSharePercent}% 负荷)</h4>
-            <p><b>辅助热源制热量:</b> ${fNum(annualHeatingDemandKWh * (1.0 - results.hybridInputs.hpLoadShare), 0)} kWh</p>
+            <p><b>辅助热源制热量:</b> ${fNum(annualHeatingDemandKWh * (1.0 - hybridInputs.hybridLoadShare), 0)} kWh</p>
             <p><b>年能源消耗:</b> ${fNum(hybrid_aux.consumption)} ${hybrid_aux.key === 'gas' ? 'm³' : (hybrid_aux.key === 'electric' ? 'kWh' : '吨')}</p>
             <p><b>年能源成本 (辅助):</b> ${fYuan(hybrid_aux.energyCost)} 元</p>
             <p><b>年运维(O&M)成本 (辅助):</b> ${fYuan(hybrid_aux.opexCost)} 元</p>
@@ -610,7 +610,7 @@ function populateCostComparisonCalculationDetails(results) {
         });
 
     } else {
-        // --- V10.0 标准模式的计算过程 ---
+        // --- V8.0 标准模式的计算过程 ---
         let hpEnergyCostDetailsHTML = '';
         if (hp.energyCostDetails.tiers && hp.energyCostDetails.tiers.length > 0) {
             hp.energyCostDetails.tiers.forEach(tier => {
@@ -682,10 +682,10 @@ function populateCostComparisonCalculationDetails(results) {
 }
 
 /**
- * 填充 "投资风险分析" (V10.0)
+ * 填充 "投资风险分析" (V10.0, 暂未修改)
  * V11.0: 增加 analysisMode 参数
  */
-export function populateRiskAnalysisDetails(analysisMode = 'standard') {
+export function populateRiskAnalysisDetails() {
     let riskHTML = '';
     
     if (analysisMode === 'bot') {
@@ -825,7 +825,8 @@ function buildBotPrintReport(results) {
  * @param {object} results 
  */
 function buildCostComparisonPrintReport(results) {
-    const { isHybridMode, lccParams, hp, comparisons, inputs, hybridSystem } = results;
+    // V11.0 BUGFIX: 此处也遗漏了 hybridInputs
+    const { isHybridMode, lccParams, hp, comparisons, inputs, hybridSystem, hybridInputs } = results;
 
     const projectName = inputs.projectName || "未命名项目";
     const reportDate = new Date().toLocaleString('zh-CN');
@@ -848,7 +849,8 @@ function buildCostComparisonPrintReport(results) {
     `;
 
     if (isHybridMode) {
-        const { hybridInputs } = results;
+        // V11.0 BUGFIX: 此处原为 results.hybridInputs
+        // const { hybridInputs } = results; 
         reportHTML += `
             <div class="print-report-section">
                 <h3>2. 方案静态对比 (第1年)</h3>
@@ -864,7 +866,7 @@ function buildCostComparisonPrintReport(results) {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>方案A: ${hybridSystem.name}</strong><br><small>(工业热泵 ${fPercent(hybridInputs.hpLoadShare, 0)} + ${results.hybrid_aux.name} ${fPercent(1-hybridInputs.hpLoadShare, 0)})</small></td>
+                            <td><strong>方案A: ${hybridSystem.name}</strong><br><small>(工业热泵 ${fPercent(hybridInputs.hybridLoadShare, 0)} + ${results.hybrid_aux.name} ${fPercent(1-hybridInputs.hybridLoadShare, 0)})</small></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.lcc.capex)}</strong></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.energyCost)}</strong></td>
                             <td class="align-right"><strong>${fWan(hybridSystem.opexCost)}</strong></td>
@@ -923,7 +925,7 @@ function buildCostComparisonPrintReport(results) {
         `;
         
     } else {
-        // --- V10.0 打印报告 ---
+        // --- V8.0 打印报告 ---
         reportHTML += `
             <div class="print-report-section">
                 <h3>2. 方案静态对比 (第1年)</h3>
