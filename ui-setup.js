@@ -65,14 +65,22 @@ function setupComparisonToggles() {
         const relatedFields = document.querySelectorAll(`.${targetClass}-related`);
 
         const applyToggleState = (isChecked) => {
-            if (capexInput) capexInput.disabled = !isChecked;
+            if (capexInput) {
+                capexInput.disabled = !isChecked;
+                // --- 修正开始 ---
+                // 同时切换 capexInput 父容器的 'comparison-disabled' 样式
+                if (capexInput.parentElement) {
+                    capexInput.parentElement.classList.toggle('comparison-disabled', !isChecked);
+                }
+                // --- 修正结束 ---
+            }
             relatedFields.forEach(field => {
                 if (field.tagName === 'INPUT' || field.tagName === 'SELECT') field.disabled = !isChecked;
                 
                 const parentContainer = field.closest('.tooltip-container');
                 if (parentContainer) {
                     parentContainer.classList.toggle('comparison-disabled', !isChecked);
-                } else if (field.parentElement.tagName === 'DIV') {
+                } else if (field.parentElement && field.parentElement.tagName === 'DIV') { // V11.2: 增强判空
                     // 适用于残值率的布局
                      field.parentElement.classList.toggle('comparison-disabled', !isChecked);
                 }
