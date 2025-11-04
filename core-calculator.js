@@ -120,8 +120,7 @@ export function runAnalysis(inputs) {
     const results = {}; // 这是将返回的总结果对象
     const { 
         lccYears, discountRate, energyInflationRate, opexInflationRate, priceTiers, 
-        isHybridMode, gridFactor, inputs: inputValues,
-        taxRate, depreciationYears // V11.0 新增
+        isHybridMode, gridFactor, inputs: inputValues 
     } = inputs;
     
     const lccParams = { lccYears, discountRate, energyInflationRate, opexInflationRate };
@@ -299,7 +298,7 @@ export function runAnalysis(inputs) {
         comparisons.push(steamDetails);
     }
 
-    // --- 6. (V11.0) 计算 ROI (税后模型) ---
+    // --- 6. (V10.0) 计算 ROI (方案A vs 方案B, C, D...) ---
     results.comparisons = comparisons.map(boiler => {
         const energyCostSaving = boiler.energyCost - hpSystemDetails.energyCost;
         let energyCostSavingRate = (boiler.energyCost > 0) ? (energyCostSaving / boiler.energyCost) : (hpSystemDetails.energyCost <= 0 ? 0 : -Infinity);
@@ -311,7 +310,7 @@ export function runAnalysis(inputs) {
         
         const investmentDiff = hpSystemDetails.lcc.capex - boiler.lcc.capex;
         const opexSaving = boiler.opex - hpSystemDetails.opex;
-        let paybackPeriod = "无法收回投资"; // 这是静态PBP, 留作简单参考
+        let paybackPeriod = "无法收回投资";
         if (opexSaving > 0 && investmentDiff > 0) paybackPeriod = (investmentDiff / opexSaving).toFixed(2) + " 年";
         else if (investmentDiff <=0 && opexSaving > 0) paybackPeriod = "无需额外投资";
         else if (investmentDiff <=0 && opexSaving <= 0) paybackPeriod = "无额外投资/无节省";
@@ -320,84 +319,41 @@ export function runAnalysis(inputs) {
         
         const co2Reduction = (boiler.co2 - hpSystemDetails.co2); // in kg
         const treesPlanted = co2Reduction > 0 ? (co2Reduction / 18.3) : 0;
-        
-        // lccSaving 是 "税前LCC" 的节省，仍用于LCC视图的对比
         const lccSaving = boiler.lcc.total - hpSystemDetails.lcc.total;
-        
-        // --- V11.0 税后现金流计算 ---
+        const npv = lccSaving; 
+
+        // Build Cash Flow
         const cash_flows = [];
         cash_flows.push(-investmentDiff); // Year 0
 
-        // 额外投资的年折旧额 (直线法)
-        // V11.0 修正: 确保折旧额不为负 (如果锅炉投资更高)
-        const annualDepreciation = (depreciationYears > 0 && investmentDiff > 0) ? (investmentDiff / depreciationYears) : 0;
-        
+        // --- IRR BUG 修正开始 ---
+        // 修正了 Math.pow(inflationRate, ...) 为 Math.pow(1 + inflationRate, ...)
         for (let n = 1; n <= lccYears; n++) {
-            // 1. 计算税前节省 (EBIT)
-            // V10.1 Bug Fix: Added (1 + ...) to inflation
             const hpEnergyCost_n = hpSystemDetails.energyCost * Math.pow(1 + energyInflationRate, n - 1);
             const boilerEnergyCost_n = boiler.energyCost * Math.pow(1 + energyInflationRate, n - 1);
             const hpOpexCost_n = hpSystemDetails.opexCost * Math.pow(1 + opexInflationRate, n - 1);
             const boilerOpexCost_n = boiler.opexCost * Math.pow(1 + opexInflationRate, n - 1);
-            const preTaxSaving_n = (boilerEnergyCost_n + boilerOpexCost_n) - (hpEnergyCost_n + hpOpexCost_n);
-            
-            // 2. 计算折旧 (只在折旧年限内)
-            const depreciation_n = (n <= depreciationYears) ? annualDepreciation : 0;
-            
-            // 3. 计算税后现金流 (Post-Tax Operating Cash Flow)
-            // 公式: (税前节省 - 折旧) * (1 - 税率) + 折旧
-            // 简化: (税前节省 * (1 - 税率)) + (折旧 * 税率) <--- 这就是折旧税盾
-            const postTaxSaving_n = preTaxSaving_n * (1 - taxRate);
-            const depreciationTaxShield_n = depreciation_n * taxRate;
-            const postTaxCashFlow_n = postTaxSaving_n + depreciationTaxShield_n;
-            
-            cash_flows.push(postTaxCashFlow_n);
+            const annualSaving_n = (boilerEnergyCost_n + boilerOpexCost_n) - (hpEnergyCost_n + hpOpexCost_n);
+            cash_flows.push(annualSaving_n);
         }
+        // --- IRR BUG 修正结束 ---
         
-        // 4. 处理残值 (Terminal Year Cash Flow)
         const hpSalvageValue = hpSystemDetails.lcc.salvageValue;
         const boilerSalvageValue = boiler.lcc.salvageValue;
-        const deltaSalvage = hpSalvageValue - boilerSalvageValue; // 实际收到的现金
-
-        // 计算残值时的账面价值 (Book Value)
-        let bookValue = investmentDiff; // 初始额外投资
-        if (investmentDiff > 0 && depreciationYears > 0) {
-            // 已折旧总额
-            const accumulatedDepreciation = annualDepreciation * Math.min(lccYears, depreciationYears);
-            // 剩余账面价值
-            bookValue = investmentDiff - accumulatedDepreciation;
-        }
-        bookValue = Math.max(0, bookValue); // 账面价值不能为负
-        
-        // 变卖资产的税务影响
-        // taxableGain > 0 means we sold for more than book value, so we pay tax
-        // taxableGain < 0 means we sold for less, so we get a tax credit (tax shield)
-        const taxableGain = deltaSalvage - bookValue; 
-        const taxOnGain = taxableGain * taxRate;
-        
-        // 终端现金流 = 卖的钱 - (卖的钱 - 账面价值) * 税率
-        const terminalCashFlow = deltaSalvage - taxOnGain;
-        
-        // 将残值净现金流加入最后一年的现金流
-        cash_flows[cash_flows.length - 1] += terminalCashFlow; // (cash_flows[0] is Year 0, so lccYears is index lccYears)
-        // --- V11.0 税后计算结束 ---
+        const deltaSalvage = hpSalvageValue - boilerSalvageValue;
+        cash_flows[lccYears] += deltaSalvage;
         
         const irr = findIRR(cash_flows);
         const dynamicPBP = calculateDynamicPBP(cash_flows, discountRate, lccYears);
-        
-        // V11.0: Calculate true Post-Tax NPV
-        const npv_post_tax = calculateCashFlowNPV(cash_flows, discountRate);
 
         return {
             key: boiler.key, name: boiler.name,
             opex: boiler.opex, opexSaving,
-            investmentDiff, paybackPeriod, // paybackPeriod 是静态的, 仅供参考
+            investmentDiff, paybackPeriod,
             co2Reduction: co2Reduction / 1000, // convert kg to ton
             treesPlanted,
-            lcc: boiler.lcc.total, lccSaving, // lccSaving 是 LCC 视图的税前节省
-            npv: npv_post_tax, // V11.0: 这是税后NPV
-            irr, // V11.0: 这是税后IRR
-            dynamicPBP, // V11.0: 这是税后PBP
+            lcc: boiler.lcc.total, lccSaving,
+            npv, irr, dynamicPBP,
             simpleROI, electricalPriceRatio,
             energyCostSaving, energyCostSavingRate
         };
@@ -406,4 +362,3 @@ export function runAnalysis(inputs) {
     // --- 7. 返回总结果 ---
     return results;
 }
-

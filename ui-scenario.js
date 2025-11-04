@@ -45,7 +45,7 @@ function renderScenarioTable() {
     undoBtn.classList.add('hidden');
 
     tableBody.innerHTML = '';
-    let summaryHTML = '';
+    summaryContainer.innerHTML = '';
 
     const minLCC = Math.min(...savedScenarios.map(s => s.lcc));
 
@@ -71,7 +71,7 @@ function renderScenarioTable() {
     });
 
     if (savedScenarios.length > 0) {
-        summaryHTML = `<h4 class="font-bold text-md text-indigo-700 mb-2">多方案对比总结:</h4>`;
+        let summaryHTML = '<h4 class="text-lg font-semibold text-indigo-900 mb-2">对比总结</h4>';
         
         const bestLCC = savedScenarios.reduce((p, c) => (p.lcc < c.lcc) ? p : c);
         summaryHTML += `<p>• <b>LCC (全寿命周期成本) 最优:</b> 方案 "<b>${bestLCC.name}</b>"，总成本为 <b>${fWan(bestLCC.lcc)} 万元</b>。</p>`;
@@ -79,23 +79,21 @@ function renderScenarioTable() {
         const validIRRs = savedScenarios.filter(s => s.irr !== null && isFinite(s.irr));
         if (validIRRs.length > 0) {
             const bestIRR = validIRRs.reduce((p, c) => (p.irr > c.irr) ? p : c);
-            // V11.0: 更新总结文本
-            summaryHTML += `<p>• <b>IRR (内部收益率, 税后) 最高:</b> 方案 "<b>${bestIRR.name}</b>"，IRR 高达 <b>${fPercent(bestIRR.irr)}</b> (对比${bestIRR.baselineName})。</p>`;
+            summaryHTML += `<p>• <b>IRR (内部收益率) 最高:</b> 方案 "<b>${bestIRR.name}</b>"，IRR 高达 <b>${fPercent(bestIRR.irr)}</b> (对比${bestIRR.baselineName})。</p>`;
         } else {
-            summaryHTML += `<p>• <b>IRR (内部收益率, 税后):</b> 无有效IRR数据可供对比 (可能均无额外投资或无法回收)。</p>`;
+            summaryHTML += `<p>• <b>IRR (内部收益率):</b> 无有效IRR数据可供对比 (可能均无额外投资或无法回收)。</p>`;
         }
 
         const validPBPs = savedScenarios.filter(s => s.dynamicPBP !== null && isFinite(s.dynamicPBP));
         if (validPBPs.length > 0) {
             const bestPBP = validPBPs.reduce((p, c) => (p.dynamicPBP < c.dynamicPBP) ? p : c);
-            // V11.0: 更新总结文本
-            summaryHTML += `<p>• <b>PBP (动态回收期, 税后) 最短:</b> 方案 "<b>${bestPBP.name}</b>"，回收期仅 <b>${fYears(bestPBP.dynamicPBP)}</b> (对比${bestPBP.baselineName})。</p>`;
+            summaryHTML += `<p>• <b>PBP (动态回收期) 最短:</b> 方案 "<b>${bestPBP.name}</b>"，回收期仅 <b>${fYears(bestPBP.dynamicPBP)}</b> (对比${bestPBP.baselineName})。</p>`;
         } else {
-            summaryHTML += `<p>• <b>PBP (动态回收期, 税后):</b> 无有效PBP数据可供对比 (可能均无法回收)。</p>`;
+            summaryHTML += `<p>• <b>PBP (动态回收期):</b> 无有效PBP数据可供对比 (可能均无法回收)。</p>`;
         }
 
         const bestCO2 = savedScenarios.reduce((p, c) => (p.co2 < c.co2) ? p : c);
-        summaryHTML += `<p>• <b>环境效益最优 (年碳排最低):</b> 方案 "<b>${bestCO2.name}</b>"，年碳排放 <b>${fTon(bestCO2.co2)} 吨</b>。</p>`;
+        summaryHTML += `<p>• <b>碳排放最低:</b> 方案 "<b>${bestCO2.name}</b>"，年排放仅 <b>${fTon(bestCO2.co2)} 吨CO₂</b>。</p>`;
 
         summaryContainer.innerHTML = summaryHTML;
     }
@@ -131,10 +129,10 @@ function setupScenarioToggle() {
  */
 export function saveHpScenario(name, hpDetails, hpCop, baselineComparison) {
     const isHybrid = hpDetails.isHybrid || false;
-    let finalName = `${name} ${isHybrid ? '(混合)' : ''}`;
+    let finalName = name;
     
     if (isHybrid && !finalName.includes('(混合)')) {
-         finalName += ' (混合)';
+        finalName += ' (混合)';
     }
 
     let counter = 1;
@@ -152,7 +150,6 @@ export function saveHpScenario(name, hpDetails, hpCop, baselineComparison) {
         totalCapex: hpDetails.lcc.capex,
         hpCop: hpCop, 
         baselineName: baselineComparison ? baselineComparison.name : '无对比',
-        // V11.1 BUG修复: 补充上次遗漏的 dynamicPBP
         dynamicPBP: baselineComparison ? baselineComparison.dynamicPBP : null,
         irr: baselineComparison ? baselineComparison.irr : null
     };
@@ -172,12 +169,11 @@ export function initializeScenarioControls() {
     clearBtn.addEventListener('click', () => {
         if (savedScenarios.length === 0) return; 
 
-        // V11.1 BUG修复: 移除 confirm()
-        // if (confirm('确定要清空所有已暂存的方案吗？')) {
+        if (confirm('确定要清空所有已暂存的方案吗？')) {
             lastSavedScenarios = [...savedScenarios];
             savedScenarios = [];
             renderScenarioTable();
-        // }
+        }
     });
 
     undoBtn.addEventListener('click', () => {
@@ -190,4 +186,3 @@ export function initializeScenarioControls() {
 
     setupScenarioToggle();
 }
-
