@@ -281,3 +281,30 @@ input:disabled, select:disabled {
         padding-top: 5px;
     }
 }
+
+/* --- V11.0 新增：全局通知栏样式 (替代 alert) --- */
+#global-notifier {
+    /* 默认是 'info' 样式 */
+    background-color: #eff6ff; /* Tailwind blue-50 */
+    color: #1e40af; /* Tailwind blue-800 */
+    border: 1px solid #bfdbfe; /* Tailwind blue-200 */
+    transition: opacity 0.3s, transform 0.3s;
+    transform: translateX(100%);
+    opacity: 0;
+}
+#global-notifier:not(.hidden) {
+    transform: translateX(0);
+    opacity: 1;
+}
+#global-notifier.notifier-success {
+    background-color: #ecfdf5; /* Tailwind green-50 */
+    color: #065f46; /* Tailwind green-800 */
+    border: 1px solid #a7f3d0; /* Tailwind green-200 */
+}
+#global-notifier.notifier-error {
+    background-color: #fef2f2; /* Tailwind red-50 */
+    color: #991b1b; /* Tailwind red-800 */
+    border: 1px solid #fecaca; /* Tailwind red-200 */
+}
+/* (确认模态框 #confirm-modal 完全由 index.html 中的 Tailwind 类定义，无需额外 CSS) */
+

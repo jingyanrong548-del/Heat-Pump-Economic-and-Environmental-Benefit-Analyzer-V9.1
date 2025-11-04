@@ -30,7 +30,11 @@ function onCalculateClick() {
     uiRenderer.setStaleDisplay(false);
 
     // 2. 从DOM读取所有输入并验证
-    const inputs = readAllInputs(uiRenderer.showPriceTierError);
+    // V11.0 更新：传入 showGlobalNotification 替换 readAllInputs 内部的 alert
+    const inputs = readAllInputs(
+        uiRenderer.showPriceTierError, 
+        uiRenderer.showGlobalNotification
+    );
     if (!inputs) {
         return; // 验证失败
     }
@@ -50,8 +54,12 @@ function onCalculateClick() {
     // 6. 绑定计算后才出现的按钮
     bindPostCalculationButtons(results);
     
-    // 7. 激活暂存按钮
-    uiRenderer.setSaveButtonState('enabled');
+    // 7. 激活暂存按钮 (如果不是 BOT 模式)
+    if (results.analysisMode !== 'bot') {
+        uiRenderer.setSaveButtonState('enabled');
+    } else {
+        uiRenderer.setSaveButtonState('disabled', 'BOT 模式不支持暂存');
+    }
 }
 
 /**
@@ -59,8 +67,11 @@ function onCalculateClick() {
  * @param {object} results - 完整的计算结果
  */
 function bindPostCalculationButtons(results) {
-    const { inputs, comparisons, isHybridMode } = results;
-    const hpSystemDetails = isHybridMode ? results.hybridSystem : results.hp;
+    // V11.0: 增加 analysisMode
+    const { inputs, comparisons, isHybridMode, analysisMode } = results; 
+    
+    // V11.0: 检查 analysisMode，如果是 BOT，则 hpSystemDetails 为 hp 本身 (尽管暂存已禁用，但保证逻辑完整)
+    const hpSystemDetails = (analysisMode === 'bot') ? results.hp : (isHybridMode ? results.hybridSystem : results.hp);
 
     // 详情
     document.getElementById('toggle-details-btn').addEventListener('click', (e) => {
@@ -75,7 +86,7 @@ function bindPostCalculationButtons(results) {
         const details = document.getElementById('risk-analysis-details');
         const isVisible = details.classList.toggle('visible');
         e.target.textContent = isVisible ? '隐藏投资风险及对策分析' : '显示投资风险及对策分析';
-        if (isVisible) uiRenderer.populateRiskAnalysisDetails(); // 只在第一次展开时填充
+        if (isVisible) uiRenderer.populateRiskAnalysisDetails(analysisMode); // V11.0: 传入模式
     });
 
     // 打印
@@ -93,15 +104,23 @@ function bindPostCalculationButtons(results) {
         const projectName = inputs.projectName || '未命名方案';
         const hpCop = inputs.hpCop;
         
-        if (hpSystemDetails && comparisons.length > 0) {
+        // V11.0 更新：BOT 模式暂存逻辑待定，目前只处理成本对比模式
+        if (analysisMode === 'bot') {
+            uiRenderer.showGlobalNotification('BOT 模式的方案暂存功能正在开发中', 'info');
+            return;
+        }
+
+        if (hpSystemDetails && comparisons && comparisons.length > 0) {
             // 寻找一个基准进行对比，优先使用天然气
             const baselineComparison = comparisons.find(c => c.key === 'gas') || comparisons[0];
             saveHpScenario(projectName, hpSystemDetails, hpCop, baselineComparison);
             uiRenderer.setSaveButtonState('saved');
-        } else if (hpSystemDetails && comparisons.length === 0) {
-             alert('无法暂存，因为没有勾选任何对比方案。');
+        } else if (hpSystemDetails && (!comparisons || comparisons.length === 0)) {
+             // V11.0 更新：替换 alert
+             uiRenderer.showGlobalNotification('无法暂存，因为没有勾选任何对比方案。', 'error');
         } else {
-            alert('无法暂存，计算数据不存在。');
+            // V11.0 更新：替换 alert
+            uiRenderer.showGlobalNotification('无法暂存，计算数据不存在。', 'error');
         }
     });
 }
@@ -110,11 +129,23 @@ function bindPostCalculationButtons(results) {
 // --- 应用程序入口 ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. 初始化所有输入控件的监听器
-    initializeInputSetup(markResultsAsStale);
+    // V11.0: 传入 showGlobalNotification 以替换 price tier 内部的 alert
+    initializeInputSetup(
+        markResultsAsStale,
+        uiRenderer.showGlobalNotification 
+    );
     
     // 2. 初始化 "多方案对比" 功能模块
-    initializeScenarioControls();
+    // V11.0 更新：传入模态框和通知栏句柄，以替换 confirm 和 alert
+    initializeScenarioControls(
+        uiRenderer.showConfirmModal,
+        uiRenderer.showGlobalNotification
+    );
 
     // 3. 绑定主计算按钮
     document.getElementById('calculateBtn').addEventListener('click', onCalculateClick);
+    
+    // V11.0: 为模态框按钮绑定全局监听器 (在 ui-renderer 中)
+    uiRenderer.initializeModalControls();
 });
+

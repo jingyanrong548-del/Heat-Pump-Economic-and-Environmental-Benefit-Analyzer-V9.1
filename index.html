@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工业热泵经济与环境效益分析器 V10.0 (调试增强版)</title>
+    <!-- 标题已根据策划案更新 -->
+    <title>工业热泵经济与环境效益分析器 V11.0 (BOT 模式)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -15,10 +16,22 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
+    <!-- 新增：全局通知栏 (用于替换 alert) -->
+    <div id="global-notifier" class="hidden fixed top-5 right-5 z-50 max-w-sm p-4 rounded-lg shadow-lg" role="alert">
+        <div class="flex items-center">
+            <!-- 成功图标 (默认) -->
+            <svg class="w-6 h-6 mr-3" id="global-notifier-icon-success" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <!-- 失败图标 (默认隐藏) -->
+            <svg class="w-6 h-6 mr-3 hidden" id="global-notifier-icon-error" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+            <span id="global-notifier-text" class="text-sm font-medium">通知内容</span>
+        </div>
+    </div>
+
     <div id="app-wrapper">
         <div class="container mx-auto p-4 md:p-8 max-w-6xl">
             <header class="text-center mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">工业热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V10.0 (调试增强版)</span></h1>
+                <!-- 标题已根据策划案更新 -->
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">工业热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V11.0 (BOT 模式)</span></h1>
                 <p class="mt-2 text-md text-gray-600">综合评估工业热泵(含储能)相较于传统锅炉的投资回报、全寿命周期成本(LCC)与环保优势</p>
             </header>
 
@@ -48,14 +61,19 @@
                         
                         <div class="mb-6 pb-4 border-b">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 A (您的方案) 配置</h3>
-                            <fieldset class="flex space-x-6">
+                            <!-- 模式选择已根据策划案更新，增加 模式三 -->
+                            <fieldset class="flex flex-col sm:flex-row sm:space-x-6 space-y-2 sm:space-y-0">
                                 <div>
                                     <input type="radio" id="modeStandard" name="schemeAMode" value="standard" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change" checked>
-                                    <label for="modeStandard" class="ml-2 text-sm font-medium text-gray-700">模式一: 100% 工业热泵系统 (标准模式)</label>
+                                    <label for="modeStandard" class="ml-2 text-sm font-medium text-gray-700">模式一: 100% 工业热泵 (成本对比)</label>
                                 </div>
                                 <div>
                                     <input type="radio" id="modeHybrid" name="schemeAMode" value="hybrid" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
-                                    <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (工业热泵 + 辅助热源)</label>
+                                    <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (成本对比)</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="modeBot" name="schemeAMode" value="bot" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                                    <label for="modeBot" class="ml-2 text-sm font-medium text-gray-700">模式三: BOT / EMC (投资盈利)</label>
                                 </div>
                             </fieldset>
                         </div>
@@ -63,7 +81,7 @@
                             <div>
                                 <div class="tooltip-container">
                                     <label for="hpCapex" class="block text-sm font-medium text-gray-700">
-                                        工业热泵主机投资
+                                        工业热泵主机投资 (万元)
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                           <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -71,13 +89,14 @@
                                     <span class="tooltip-text" style="width: 240px; margin-left: -120px;"><b>说明:</b><br>指工业热泵主机、水泵、管网及其他配套设施的投资。<b>不应</b>包含储能系统（请填入下方专用栏）。</span>
                                 </div>
                                 <input type="number" id="hpCapex" value="200" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
-                                <label for="storageCapex" class="block text-sm font-medium text-gray-700 mt-2">储能系统投资 (选填)</label>
+                                <label for="storageCapex" class="block text-sm font-medium text-gray-700 mt-2">储能系统投资 (万元)</label>
                                 <input type="number" id="storageCapex" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                 <label for="hpSalvageRate" class="block text-xs font-medium text-gray-600 mt-2">残值率 (%)</label>
                                 <input type="number" id="hpSalvageRate" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
                             </div>
                         </div>
 
+                        <!-- 模式二：混合模式 -->
                         <div id="hybridConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-blue-300">
                             
                             <div class="input-group">
@@ -115,13 +134,49 @@
                             </div>
                         </div>
 
+                        <!-- 新增：模式三 BOT 专属输入 -->
+                        <div id="botConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-green-300">
+                            <h3 class="text-lg font-semibold text-green-800 mb-0">模式三: BOT / EMC 专属参数</h3>
+                             <div class="input-group">
+                                <div>
+                                    <label for="botAnnualRevenue" class="block text-sm font-medium text-gray-700">年销售收入 (万元)</label>
+                                    <input type="number" id="botAnnualRevenue" value="150" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botEquityRatio" class="block text-sm font-medium text-gray-700">资本金比例 (%)</label>
+                                    <input type="number" id="botEquityRatio" value="30" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botLoanInterestRate" class="block text-sm font-medium text-gray-700">贷款利率 (%)</label>
+                                    <input type="number" id="botLoanInterestRate" value="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botDepreciationYears" class="block text-sm font-medium text-gray-700">折旧年限 (年)</label>
+                                    <input type="number" id="botDepreciationYears" value="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botVatRate" class="block text-sm font-medium text-gray-700">增值税率 (%)</label>
+                                    <input type="number" id="botVatRate" value="13" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botSurtaxRate" class="block text-sm font-medium text-gray-700">附加税费率 (%)</label>
+                                    <input type="number" id="botSurtaxRate" value="12" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                                <div>
+                                    <label for="botIncomeTaxRate" class="block text-sm font-medium text-gray-700">所得税率 (%)</label>
+                                    <input type="number" id="botIncomeTaxRate" value="25" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                </div>
+                             </div>
+                        </div>
+
+                        <!-- 模式一/二：成本对比 -->
                         <div id="comparisonTogglesContainer" class="mt-6 pt-6 border-t">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 B (对比基准): 100% 传统热源投资 (请勾选)</h3>
                             <div class="input-group">
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_gas" data-target="gas" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_gas" class="ml-2 block text-sm font-medium text-gray-700">天然气锅炉投资</label>
+                                        <label for="compare_gas" class="ml-2 block text-sm font-medium text-gray-700">天然气锅炉投资 (万元)</label>
                                     </div>
                                     <input type="number" id="gasBoilerCapex" value="80" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="gasSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 gas-related">残值率 (%)</label>
@@ -130,7 +185,7 @@
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_fuel" data-target="fuel" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_fuel" class="ml-2 block text-sm font-medium text-gray-700">燃油锅炉投资</label>
+                                        <label for="compare_fuel" class="ml-2 block text-sm font-medium text-gray-700">燃油锅炉投资 (万元)</label>
                                     </div>
                                     <input type="number" id="fuelBoilerCapex" value="70" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="fuelSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 fuel-related">残值率 (%)</label>
@@ -139,7 +194,7 @@
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_coal" data-target="coal" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_coal" class="ml-2 block text-sm font-medium text-gray-700">燃煤锅炉投资</label>
+                                        <label for="compare_coal" class="ml-2 block text-sm font-medium text-gray-700">燃煤锅炉投资 (万元)</label>
                                     </div>
                                     <input type="number" id="coalBoilerCapex" value="60" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="coalSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 coal-related">残值率 (%)</label>
@@ -148,7 +203,7 @@
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_biomass" data-target="biomass" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_biomass" class="ml-2 block text-sm font-medium text-gray-700">生物质锅炉投资</label>
+                                        <label for="compare_biomass" class="ml-2 block text-sm font-medium text-gray-700">生物质锅炉投资 (万元)</label>
                                     </div>
                                     <input type="number" id="biomassBoilerCapex" value="75" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="biomassSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 biomass-related">残值率 (%)</label>
@@ -157,7 +212,7 @@
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_electric" data-target="electric" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_electric" class="ml-2 block text-sm font-medium text-gray-700">电锅炉投资</label>
+                                        <label for="compare_electric" class="ml-2 block text-sm font-medium text-gray-700">电锅炉投资 (万元)</label>
                                     </div>
                                     <input type="number" id="electricBoilerCapex" value="50" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="electricSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 electric-related">残值率 (%)</label>
@@ -166,7 +221,7 @@
                                 <div>
                                     <div class="flex items-center mb-1">
                                         <input type="checkbox" id="compare_steam" data-target="steam" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 comparison-toggle track-change" checked>
-                                        <label for="compare_steam" class="ml-2 block text-sm font-medium text-gray-700">管网蒸汽投资</label>
+                                        <label for="compare_steam" class="ml-2 block text-sm font-medium text-gray-700">管网蒸汽投资 (万元)</label>
                                     </div>
                                     <input type="number" id="steamCapex" value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                     <label for="steamSalvageRate" class="block text-xs font-medium text-gray-600 mt-2 steam-related">残值率 (%)</label>
@@ -301,7 +356,8 @@
                                 </div>
                                 <div id="priceTierError" class="hidden text-red-600 text-center font-bold p-2 bg-red-50 rounded-md"></div>
                                 <div id="priceTiersContainer" class="space-y-3">
-                                    </div>
+                                    <!-- 电价时段将由 JS 动态插入这里 -->
+                                </div>
                             </div>
                             <div class="input-group mt-6 pt-6 border-t">
                                 <div class="tooltip-container gas-related">
@@ -438,11 +494,12 @@
                                  </div>
                              </div>
                          </div>
-                    </div> 
+                    </div> <!-- V11.0: standardModeSections 结束 -->
 
-                    <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div id="lccParamsContainer" class="bg-white p-6 rounded-xl shadow-md">
                         <div class="flex items-center mb-4">
-                            <h2 id="section7Title" class="text-xl font-semibold border-l-4 border-blue-500 pl-3">7. 全寿命周期 (LCC) 与 ROI 参数</h2>
+                            <!-- V11.0: 标题 ID 更新，以便 JS 可以动态修改它 -->
+                            <h2 id="section7Title" class="text-xl font-semibold border-l-4 border-blue-500 pl-3">7. 财务分析参数</h2>
                             <div class="tooltip-container ml-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -474,7 +531,9 @@
                         </div>
                     </div>
 
-                    </div> <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
+                </div> <!-- space-y-6 结束 -->
+
+                <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
 
                  <button id="calculateBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 text-lg mt-6">
                     开始计算分析
@@ -489,6 +548,7 @@
                         暂存当前工业热泵方案 (请先计算)
                     </button>
                 </div>
+
                 <div id="results-container" class="mt-8">
                     <div class="bg-white p-6 rounded-xl shadow-md">
                         <h2 id="results-title" class="text-xl font-semibold mb-4 text-center">静态、ROI 与 LCC 对比分析结果</h2>
@@ -499,7 +559,8 @@
                             <p class="mt-2">请填写上方参数并点击计算</p>
                         </div>
                         <div id="results-content" class="hidden space-y-6">
-                            </div>
+                            <!-- 结果将由 JS 动态插入这里 -->
+                        </div>
                     </div>
                 </div>
 
@@ -515,7 +576,8 @@
                             </button>
                         </div>
                     </div>
-                    <div id="scenario-table-wrapper" class="overflow-x-auto"> <table id="scenario-comparison-table" class="min-w-full divide-y divide-gray-200">
+                    <div id="scenario-table-wrapper" class="overflow-x-auto">
+                        <table id="scenario-comparison-table" class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">方案名称</th>
@@ -532,23 +594,56 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                </tbody>
+                                <!-- 暂存方案将由 JS 动态插入这里 -->
+                            </tbody>
                         </table>
                     </div>
                     <div id="scenario-summary" class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg space-y-2 hidden">
-                        </div>
+                        <!-- 总结将由 JS 动态插入这里 -->
+                    </div>
                 </div>
 
-            </div> </div>
+            </div> <!-- space-y-8 结束 -->
+        </div> <!-- container 结束 -->
+
         <footer class="text-center py-4 text-sm text-gray-500 border-t mt-8">
             <p>本程序已尽力确保正确，但不承担相关法律责任，App bug 请联系荆炎荣 15280122625。</p>
             <p class="mt-1">注：全寿命周期成本(LCC)与ROI计算基于净现值(NPV)法，符合《建设项目经济评价方法与参数》相关规定。</p>
         </footer>
-    </div>
+
+        <!-- 新增：确认模态框 (用于替换 confirm) -->
+        <div id="confirm-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 id="confirm-modal-title" class="text-lg leading-6 font-medium text-gray-900 mt-2">确认操作</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p id="confirm-modal-message" class="text-sm text-gray-500">确定要执行此操作吗？</p>
+                    </div>
+                    <div class="items-center px-4 py-3 space-x-4">
+                        <button id="confirm-modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none">
+                            取消
+                        </button>
+                        <button id="confirm-modal-ok-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none">
+                            确认
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- app-wrapper 结束 -->
 
     <script type="module" src="main.js"></script>
 
-    <div id="print-report-container" class="print-only"></div>
+    <div id="print-report-container" class="print-only">
+        <!-- 打印报告将由 JS 动态插入这里 -->
+    </div>
     
 </body>
 </html>
+

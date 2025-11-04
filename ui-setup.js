@@ -4,6 +4,8 @@ import { fuelData, converters, MJ_PER_KCAL } from './config.js';
 // --- 模块内部状态 ---
 let spfStandardValue = "3.0"; // 模式一 (标准) 的SPF默认值
 let spfHybridValue = "4.0";   // 模式二 (混合) 的SPF默认值
+let spfBotValue = "3.5";      // 模式三 (BOT) 的SPF默认值
+let currentMode = 'standard'; // V11.0: 跟踪当前模式
 
 // --- 私有辅助函数 ---
 
@@ -93,62 +95,123 @@ function setupComparisonToggles() {
 }
 
 /**
- * V10.0: 设置模式一 (标准) / 模式二 (混合) 的切换逻辑
- * 并独立记忆两种模式下的SPF值
+ * V11.0: 重写模式选择器，以支持三种模式 (标准, 混合, BOT)
+ * 并独立记忆三种模式下的SPF值
  */
 function setupModeSelector(markResultsAsStale) {
     const modeStandard = document.getElementById('modeStandard');
     const modeHybrid = document.getElementById('modeHybrid');
+    const modeBot = document.getElementById('modeBot'); // V11.0 新增
+    
+    // 要切换的 UI 容器
     const hybridConfigInputs = document.getElementById('hybridConfigInputs'); 
+    const botConfigInputs = document.getElementById('botConfigInputs'); // V11.0 新增
+    const comparisonTogglesContainer = document.getElementById('comparisonTogglesContainer'); // 方案B
+    const standardModeSections = document.getElementById('standardModeSections'); // 包含 3, 4, 5, 6
+    const lccParamsContainer = document.getElementById('lccParamsContainer'); // 包含 7
+    
     const hpCopLabel = document.getElementById('hpCopLabel');
     const hpCopInput = document.getElementById('hpCop'); 
+    
+    // V11.0: 获取动态标题
+    const section2Title = document.getElementById('section2Title');
+    const section7Title = document.getElementById('section7Title');
 
-    if (!modeStandard || !modeHybrid || !hybridConfigInputs || !hpCopLabel || !hpCopInput) {
-        console.warn('V10.0 (模式选择) UI 元素未在 HTML 中完全找到。');
+    if (!modeStandard || !modeHybrid || !modeBot || !hybridConfigInputs || !botConfigInputs || !comparisonTogglesContainer || !standardModeSections || !lccParamsContainer) {
+        console.error('V11.0 (模式选择) UI 元素未在 HTML 中完全找到。');
         return;
     }
 
-    const applyModeState = (isEnteringHybrid) => {
-        hybridConfigInputs.classList.toggle('hidden', !isEnteringHybrid);
+    const applyModeState = (newMode) => {
+        const currentValue = hpCopInput.value;
         
-        if (isEnteringHybrid) {
-            hpCopLabel.textContent = '工业热泵在此工况下的 SPF';
-            hpCopInput.value = spfHybridValue; 
-        } else {
-            hpCopLabel.textContent = '全年综合性能系数 (SPF)';
-            hpCopInput.value = spfStandardValue; 
+        // 1. 保存离开模式的SPF值
+        if (currentMode === 'standard') {
+            spfStandardValue = currentValue;
+        } else if (currentMode === 'hybrid') {
+            spfHybridValue = currentValue;
+        } else if (currentMode === 'bot') {
+            spfBotValue = currentValue;
+        }
+
+        // 2. 根据新模式更新UI
+        if (newMode === 'standard' || newMode === 'hybrid') {
+            // --- 成本对比模式 (V10.0 逻辑) ---
+            hybridConfigInputs.classList.toggle('hidden', newMode === 'standard');
+            botConfigInputs.classList.add('hidden');
+            comparisonTogglesContainer.classList.remove('hidden');
+            standardModeSections.classList.remove('hidden');
+            lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
+            
+            if (newMode === 'standard') {
+                hpCopLabel.textContent = '全年综合性能系数 (SPF)';
+                hpCopInput.value = spfStandardValue;
+            } else {
+                hpCopLabel.textContent = '工业热泵在此工况下的 SPF';
+                hpCopInput.value = spfHybridValue;
+            }
+            
+            // 还原标题
+            section2Title.textContent = "2. 方案配置";
+            section7Title.textContent = "7. 财务分析参数";
+            
+        } else if (newMode === 'bot') {
+            // --- 投资盈利模式 (V11.0 逻辑) ---
+            hybridConfigInputs.classList.add('hidden');
+            botConfigInputs.classList.remove('hidden');
+            comparisonTogglesContainer.classList.add('hidden'); // BOT模式不进行成本对比
+            standardModeSections.classList.add('hidden'); // BOT模式不关心锅炉参数
+            lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
+
+            hpCopLabel.textContent = 'BOT 项目 SPF (用于计算电费成本)';
+            hpCopInput.value = spfBotValue;
+            
+            // 修改标题
+            section2Title.textContent = "2. 方案与投资配置";
+            section7Title.textContent = "7. BOT 财务分析参数";
         }
         
-        const defaultValue = isEnteringHybrid ? "4.0" : "3.0";
+        // 3. 更新当前模式状态
+        currentMode = newMode;
+        
+        // 4. 检查默认值样式
+        const defaultValue = (newMode === 'standard') ? "3.0" : (newMode === 'hybrid' ? "4.0" : "3.5");
         hpCopInput.classList.toggle('default-param', hpCopInput.value === defaultValue);
         
         markResultsAsStale();
     };
 
+    // 绑定监听器
     modeStandard.addEventListener('change', () => {
-        if (modeStandard.checked) {
-            spfHybridValue = hpCopInput.value;
-            applyModeState(false);
-        }
+        if (modeStandard.checked) applyModeState('standard');
     });
 
     modeHybrid.addEventListener('change', () => {
-        if (modeHybrid.checked) {
-            spfStandardValue = hpCopInput.value;
-            applyModeState(true);
-        }
+        if (modeHybrid.checked) applyModeState('hybrid');
+    });
+    
+    modeBot.addEventListener('change', () => {
+        if (modeBot.checked) applyModeState('bot');
     });
 
+    // 初始化
     hpCopInput.value = spfStandardValue; 
-    applyModeState(modeHybrid.checked); 
+    applyModeState('standard'); // 默认以标准模式启动
 }
 
 
 /**
  * 添加一个新的电价时段UI
+ * V11.0: 替换了 'alert' 为 'showGlobalNotification'
  */
-function addNewPriceTier(name = "", price = "", dist = "", markResultsAsStale) {
+function addNewPriceTier(name = "", price = "", dist = "", markResultsAsStale, showGlobalNotification) {
     const container = document.getElementById('priceTiersContainer');
+    // V11.0: 修复BUG，确保 container 存在
+    if (!container) {
+        console.error("priceTiersContainer 未找到!");
+        return;
+    }
+    
     const tierId = `tier-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newTier = document.createElement('div');
     newTier.className = 'price-tier-entry grid grid-cols-1 md:grid-cols-10 gap-2 items-center';
@@ -197,21 +260,31 @@ function addNewPriceTier(name = "", price = "", dist = "", markResultsAsStale) {
             newTier.remove();
             markResultsAsStale(); 
         } else {
-            alert('必须至少保留一个电价时段。');
+            // V11.0: 替换 alert
+            if(showGlobalNotification) {
+                showGlobalNotification('必须至少保留一个电价时段。', 'error');
+            } else {
+                alert('必须至少保留一个电价时段。'); // Fallback
+            }
         }
     });
 }
 
 /**
  * 设置电价时段的 "添加" 按钮
+ * V11.0: 签名更新
  */
-function setupPriceTierControls(markResultsAsStale) {
-    document.getElementById('addPriceTierBtn').addEventListener('click', () => {
-        addNewPriceTier("", "", "", markResultsAsStale);
+function setupPriceTierControls(markResultsAsStale, showGlobalNotification) {
+    const addBtn = document.getElementById('addPriceTierBtn');
+    if (!addBtn) return; // 容错
+    
+    addBtn.addEventListener('click', () => {
+        addNewPriceTier("", "", "", markResultsAsStale, showGlobalNotification);
         markResultsAsStale();
     });
 
-    addNewPriceTier("平均电价", "0.7", "100", markResultsAsStale);
+    // 启动时至少添加一个默认时段
+    addNewPriceTier("平均电价", "0.7", "100", markResultsAsStale, showGlobalNotification);
     
     document.querySelectorAll('.price-tier-entry').forEach(tierEl => {
         tierEl.querySelectorAll('input').forEach(input => {
@@ -230,6 +303,8 @@ function setupGreenElectricityToggle() {
     const gridFactorInput = document.getElementById('gridFactor');
     const gridFactorUnit = document.getElementById('gridFactorUnit');
 
+    if (!toggle || !gridFactorInput || !gridFactorUnit) return; // 容错
+
     toggle.addEventListener('change', () => {
         if (toggle.checked) {
             gridFactorInput.value = '0';
@@ -238,15 +313,19 @@ function setupGreenElectricityToggle() {
             gridFactorUnit.disabled = true;
             gridFactorInput.classList.remove('default-param');
         } else {
-            const baseValue = gridFactorInput.getAttribute('data-base-value');
-            gridFactorInput.value = baseValue;
-            gridFactorInput.dataset.baseValue = baseValue; 
-            gridFactorUnit.value = 'kgCO2/kWh';
-            gridFactorUnit.dispatchEvent(new Event('change'));
-
+            // V11.0: 修复BUG，应从 attribute 读取原始 base value
+            const baseValue = gridFactorInput.getAttribute('data-base-value') || "0.57";
+            gridFactorInput.dataset.baseValue = baseValue; // 更新动态 base value
+            
+            gridFactorUnit.value = 'kgCO2/kWh'; // 触发 change 前重置为基础单位
+            gridFactorUnit.dispatchEvent(new Event('change')); // 触发换算
+            // 换算后，input.value 会被更新，我们把它设为默认值
+            
             gridFactorInput.disabled = false;
             gridFactorUnit.disabled = false;
             gridFactorInput.classList.add('default-param');
+            // V11.0: 确保 data-default-value 也被更新
+            gridFactorInput.dataset.defaultValue = gridFactorInput.value;
         }
     });
 }
@@ -256,6 +335,8 @@ function setupGreenElectricityToggle() {
  */
 function setupFuelTypeSelector() {
     const fuelTypeSelect = document.getElementById('fuelType');
+    if (!fuelTypeSelect) return; // 容错
+
     const priceInput = document.getElementById('fuelPrice');
     const calorificInput = document.getElementById('fuelCalorific');
     const factorInput = document.getElementById('fuelFactor');
@@ -270,26 +351,31 @@ function setupFuelTypeSelector() {
         const data = fuelData[selectedFuel];
         if (!data) return;
 
+        // 1. 更新 base value (用于计算)
         priceInput.dataset.baseValue = data.price;
         calorificInput.dataset.baseValue = data.calorific;
         factorInput.dataset.baseValue = data.factor;
 
+        // 2. 更新 input value (用于显示)
         priceInput.value = data.price;
-        priceInput.dataset.defaultValue = data.price;
+        priceInput.dataset.defaultValue = data.price; // 更新默认值
         priceInput.classList.add('default-param');
 
-        priceTooltip.innerHTML = data.priceTooltip;
-        calorificTooltip.innerHTML = data.calorificTooltip;
-        factorTooltip.innerHTML = data.factorTooltip;
+        // 3. 更新 tooltip
+        if (priceTooltip) priceTooltip.innerHTML = data.priceTooltip;
+        if (calorificTooltip) calorificTooltip.innerHTML = data.calorificTooltip;
+        if (factorTooltip) factorTooltip.innerHTML = data.factorTooltip;
 
+        // 4. 更新热值 (并触发单位换算)
         calorificUnitSelect.value = 'MJ/kg'; 
         calorificUnitSelect.dispatchEvent(new Event('change'));
-        calorificInput.dataset.defaultValue = calorificInput.value;
+        calorificInput.dataset.defaultValue = calorificInput.value; // 更新默认值
         calorificInput.classList.add('default-param');
 
+        // 5. 更新排放因子 (并触发单位换算)
         factorUnitSelect.value = 'kgCO2/t'; 
         factorUnitSelect.dispatchEvent(new Event('change'));
-        factorInput.dataset.defaultValue = factorInput.value;
+        factorInput.dataset.defaultValue = factorInput.value; // 更新默认值
         factorInput.classList.add('default-param');
     });
 }
@@ -300,36 +386,57 @@ function setupFuelTypeSelector() {
 /**
  * 初始化所有UI输入控件的事件监听
  * @param {function} markResultsAsStale - 从 main.js 传入的回调函数，用于标记结果为陈旧
+ * @param {function} showGlobalNotification - V11.0: 从 main.js 传入的回调函数，用于显示全局通知
  */
-export function initializeInputSetup(markResultsAsStale) {
+export function initializeInputSetup(markResultsAsStale, showGlobalNotification) {
     setupUnitConverters();
     setupComparisonToggles();
     setupGreenElectricityToggle();
     setupFuelTypeSelector();
-    setupPriceTierControls(markResultsAsStale); 
+    // V11.0: 传入 showGlobalNotification 以替换 price tier 内部的 alert
+    setupPriceTierControls(markResultsAsStale, showGlobalNotification); 
     setupModeSelector(markResultsAsStale);
 
     // 设置所有输入的 "track-change" 监听器
-    const allInputs = document.querySelectorAll('input[type="number"], input[type="checkbox"], select, input[type="text"]');
+    const allInputs = document.querySelectorAll('input[type="number"], input[type="checkbox"], select, input[type="text"], input[type="radio"]');
     allInputs.forEach(input => {
-        input.dataset.defaultValue = input.value;
+        // V11.0: 对 radio button 使用 'value'，对 checkbox 使用 'checked'，其他使用 'value'
+        let defaultValue;
+        if (input.type === 'checkbox') {
+            defaultValue = input.checked;
+        } else {
+            defaultValue = input.value;
+        }
+        // 存储初始的默认值
+        input.dataset.defaultValue = defaultValue;
 
-        input.addEventListener('input', (event) => {
+
+        const inputChangeCallback = (event) => {
             const currentInput = event.target;
-            const currentDefaultValue = currentInput.dataset.defaultValue;
-
-            if (currentInput.classList.contains('default-param') || currentDefaultValue !== undefined) {
-                currentInput.classList.toggle('default-param', currentInput.value === currentDefaultValue);
+            
+            let currentDefaultValue = currentInput.dataset.defaultValue;
+            let currentValue = currentInput.value;
+            
+            if (currentInput.type === 'checkbox') {
+                currentValue = currentInput.checked;
+                // 'true' / 'false' 字符串比较
+                currentDefaultValue = currentDefaultValue === 'true'; 
             }
 
+            // 切换 .default-param 样式
+            if (currentInput.classList.contains('default-param') || currentDefaultValue !== undefined) {
+                currentInput.classList.toggle('default-param', currentValue === currentDefaultValue);
+            }
+
+            // --- V10.0: 动态更新 data-base-value (用于单位换算) ---
             const container = currentInput.closest('.tooltip-container');
             const unitSelects = container ? container.querySelectorAll('select') : [];
             const unitSelect = Array.from(unitSelects).find(sel => sel.id.endsWith('Unit'));
 
-            // 动态更新 data-base-value
             if (unitSelect && unitSelect.id.includes('Unit')) {
                 const currentVal = parseFloat(currentInput.value);
                 if (isNaN(currentVal)) {
+                     // 如果输入无效 (e.g., "abc")，不要破坏 data-base-value
                      const originalBaseValue = currentInput.getAttribute('data-base-value');
                      currentInput.dataset.baseValue = originalBaseValue;
                      if (currentInput.classList.contains('track-change')) {
@@ -357,14 +464,13 @@ export function initializeInputSetup(markResultsAsStale) {
             if (currentInput.classList.contains('track-change')) {
                  markResultsAsStale();
             }
-        });
+        };
 
-        if (input.tagName === 'SELECT' || input.type === 'checkbox') {
-             input.addEventListener('change', (event) => {
-                  if (event.target.classList.contains('track-change')) {
-                     markResultsAsStale();
-                  }
-             });
+        // 'input' 用于文本和数字框, 'change' 用于 select, checkbox, radio
+        if (input.tagName === 'SELECT' || input.type === 'checkbox' || input.type === 'radio') {
+             input.addEventListener('change', inputChangeCallback);
+        } else {
+             input.addEventListener('input', inputChangeCallback);
         }
     });
 }
@@ -372,10 +478,11 @@ export function initializeInputSetup(markResultsAsStale) {
 
 /**
  * 从DOM中读取所有输入值，并进行验证
- * @param {function} showErrorCallback - (来自 ui-renderer) 用于显示错误的函数
+ * @param {function} showErrorCallback - (来自 ui-renderer) 用于显示电价错误的函数
+ * @param {function} alertNotifier - V11.0: (来自 ui-renderer) 用于显示全局错误的函数
  * @returns {object|null} 包含所有输入的 inputs 对象，如果验证失败则返回 null
  */
-export function readAllInputs(showErrorCallback) {
+export function readAllInputs(showErrorCallback, alertNotifier) {
     const priceTiers = [];
     let totalDist = 0;
     
@@ -387,14 +494,19 @@ export function readAllInputs(showErrorCallback) {
         priceTiers.push({ name, price, dist });
     });
 
-    // 电价验证
-    if (Math.abs(totalDist - 100) > 0.1) {
-        showErrorCallback(`电价时段总比例必须为 100%，当前为 ${totalDist.toFixed(1)}%！`);
-        return null;
-    }
-    if (priceTiers.some(t => t.price <= 0 || t.dist <= 0)) {
-        showErrorCallback('电价或运行比例必须大于 0！');
-        return null;
+    // V11.0: 获取当前选择的模式
+    const analysisMode = document.querySelector('input[name="schemeAMode"]:checked').value || 'standard';
+
+    // V11.0: 仅在非 BOT 模式下验证电价比例
+    if (analysisMode !== 'bot') {
+        if (Math.abs(totalDist - 100) > 0.1) {
+            showErrorCallback(`电价时段总比例必须为 100%，当前为 ${totalDist.toFixed(1)}%！`);
+            return null;
+        }
+        if (priceTiers.some(t => t.price <= 0 || t.dist <= 0)) {
+            showErrorCallback('电价或运行比例必须大于 0！');
+            return null;
+        }
     }
     
     showErrorCallback(null); // 清除错误
@@ -402,7 +514,8 @@ export function readAllInputs(showErrorCallback) {
     // 读取所有输入值
     const inputs = {
         // 模式
-        isHybridMode: document.getElementById('modeHybrid') ? document.getElementById('modeHybrid').checked : false,
+        analysisMode: analysisMode, // V11.0 新增: 'standard', 'hybrid', 'bot'
+        isHybridMode: analysisMode === 'hybrid', // V11.0: 基于 analysisMode 派生
         // LCC
         lccYears: parseInt(document.getElementById('lccYears').value) || 15,
         discountRate: (parseFloat(document.getElementById('discountRate').value) || 8) / 100,
@@ -472,6 +585,14 @@ export function readAllInputs(showErrorCallback) {
         hybridAuxHeaterType: document.getElementById('hybridAuxHeaterType').value,
         hybridAuxHeaterCapex: (parseFloat(document.getElementById('hybridAuxHeaterCapex').value) || 0) * 10000,
         hybridAuxHeaterOpex: (parseFloat(document.getElementById('hybridAuxHeaterOpex').value) || 0) * 10000,
+        // V11.0: BOT 模式参数
+        botAnnualRevenue: (parseFloat(document.getElementById('botAnnualRevenue').value) || 0) * 10000,
+        botEquityRatio: (parseFloat(document.getElementById('botEquityRatio').value) || 0) / 100,
+        botLoanInterestRate: (parseFloat(document.getElementById('botLoanInterestRate').value) || 0) / 100,
+        botDepreciationYears: parseInt(document.getElementById('botDepreciationYears').value) || 10,
+        botVatRate: (parseFloat(document.getElementById('botVatRate').value) || 0) / 100,
+        botSurtaxRate: (parseFloat(document.getElementById('botSurtaxRate').value) || 0) / 100,
+        botIncomeTaxRate: (parseFloat(document.getElementById('botIncomeTaxRate').value) || 0) / 100,
         // 对比勾选 (V10.0)
         compare: {
             gas: document.getElementById('compare_gas').checked,
@@ -484,9 +605,15 @@ export function readAllInputs(showErrorCallback) {
     };
 
     if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
-        alert('请填写有效的制热负荷、年运行小时和工业热泵SPF。');
+        // V11.0: 替换 alert
+        if(alertNotifier) {
+            alertNotifier('请填写有效的制热负荷、年运行小时和工业热泵SPF。', 'error');
+        } else {
+            alert('请填写有效的制热负荷、年运行小时和工业热泵SPF。'); // Fallback
+        }
         return null;
     }
 
     return inputs;
 }
+

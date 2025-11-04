@@ -161,18 +161,38 @@ export function saveHpScenario(name, hpDetails, hpCop, baselineComparison) {
 
 /**
  * 初始化 "清空"、"恢复" 和 "启用" 按钮
+ * V11.0: 签名更新，接收模态框句柄
+ * @param {function} showConfirmModal
+ * @param {function} showGlobalNotification
  */
-export function initializeScenarioControls() {
+export function initializeScenarioControls(showConfirmModal, showGlobalNotification) {
     const clearBtn = document.getElementById('clearScenariosBtn');
     const undoBtn = document.getElementById('undoClearBtn');
 
-    clearBtn.addEventListener('click', () => {
-        if (savedScenarios.length === 0) return; 
+    // V11.0: 设为 async 并使用 await showConfirmModal
+    clearBtn.addEventListener('click', async () => {
+        if (savedScenarios.length === 0) {
+            // V11.0: 替换 alert
+            if (showGlobalNotification) {
+                showGlobalNotification('方案列表已经为空。', 'info');
+            }
+            return; 
+        }
 
-        if (confirm('确定要清空所有已暂存的方案吗？')) {
+        // V11.0: 替换 confirm
+        const confirmed = await showConfirmModal(
+            '确认清空列表',
+            '确定要清空所有已暂存的方案吗？您可以通过 "恢复列表" 按钮撤销此操作。'
+        );
+
+        if (confirmed) {
             lastSavedScenarios = [...savedScenarios];
             savedScenarios = [];
             renderScenarioTable();
+            // V11.0: 替换 alert
+            if (showGlobalNotification) {
+                 showGlobalNotification('方案列表已清空。', 'success');
+            }
         }
     });
 
@@ -182,7 +202,12 @@ export function initializeScenarioControls() {
         savedScenarios = [...lastSavedScenarios];
         lastSavedScenarios = [];
         renderScenarioTable();
+        // V11.0: 替换 alert
+        if (showGlobalNotification) {
+             showGlobalNotification('已恢复上次清空的列表。', 'success');
+        }
     });
 
     setupScenarioToggle();
 }
+
