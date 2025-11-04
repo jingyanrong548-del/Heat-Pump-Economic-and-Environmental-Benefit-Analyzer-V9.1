@@ -78,7 +78,7 @@ export function showConfirmModal(title, body) {
     }
 
     modalTitle.textContent = title;
-    modalMessage.textContent = message;
+    modalMessage.textContent = body;
     modal.classList.remove('hidden');
 
     return new Promise((resolve) => {
@@ -685,7 +685,10 @@ function populateCostComparisonCalculationDetails(results) {
  * 填充 "投资风险分析" (V10.0, 暂未修改)
  * V11.0: 增加 analysisMode 参数
  */
-export function populateRiskAnalysisDetails() {
+// **** 修复开始 ****
+// export function populateRiskAnalysisDetails() { // <-- 这是错误的代码
+export function populateRiskAnalysisDetails(analysisMode) { // <-- 这是修正后的代码，增加了 analysisMode 参数
+// **** 修复结束 ****
     let riskHTML = '';
     
     if (analysisMode === 'bot') {
@@ -1007,4 +1010,3 @@ function buildCostComparisonPrintReport(results) {
 
     document.getElementById('print-report-container').innerHTML = reportHTML;
 }
-

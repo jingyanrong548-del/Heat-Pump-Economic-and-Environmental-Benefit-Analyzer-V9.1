@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 标题已根据策划案更新 -->
     <title>工业热泵经济与环境效益分析器 V11.0 (BOT 模式)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,12 +15,9 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <!-- 新增：全局通知栏 (用于替换 alert) -->
     <div id="global-notifier" class="hidden fixed top-5 right-5 z-50 max-w-sm p-4 rounded-lg shadow-lg" role="alert">
         <div class="flex items-center">
-            <!-- 成功图标 (默认) -->
             <svg class="w-6 h-6 mr-3" id="global-notifier-icon-success" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-            <!-- 失败图标 (默认隐藏) -->
             <svg class="w-6 h-6 mr-3 hidden" id="global-notifier-icon-error" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
             <span id="global-notifier-text" class="text-sm font-medium">通知内容</span>
         </div>
@@ -30,7 +26,6 @@
     <div id="app-wrapper">
         <div class="container mx-auto p-4 md:p-8 max-w-6xl">
             <header class="text-center mb-8">
-                <!-- 标题已根据策划案更新 -->
                 <h1 class="text-3xl md:text-4xl font-bold text-gray-900">工业热泵经济与环境效益分析器 <span class="text-lg font-normal text-blue-600">V11.0 (BOT 模式)</span></h1>
                 <p class="mt-2 text-md text-gray-600">综合评估工业热泵(含储能)相较于传统锅炉的投资回报、全寿命周期成本(LCC)与环保优势</p>
             </header>
@@ -61,7 +56,6 @@
                         
                         <div class="mb-6 pb-4 border-b">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 A (您的方案) 配置</h3>
-                            <!-- 模式选择已根据策划案更新，增加 模式三 -->
                             <fieldset class="flex flex-col sm:flex-row sm:space-x-6 space-y-2 sm:space-y-0">
                                 <div>
                                     <input type="radio" id="modeStandard" name="schemeAMode" value="standard" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change" checked>
@@ -71,11 +65,21 @@
                                     <input type="radio" id="modeHybrid" name="schemeAMode" value="hybrid" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
                                     <label for="modeHybrid" class="ml-2 text-sm font-medium text-gray-700">模式二: 混合系统 (成本对比)</label>
                                 </div>
-                                <div>
+                                
+                                <div class="tooltip-container">
                                     <input type="radio" id="modeBot" name="schemeAMode" value="bot" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
-                                    <label for="modeBot" class="ml-2 text-sm font-medium text-gray-700">模式三: BOT / EMC (投资盈利)</label>
+                                    <label for="modeBot" class="ml-2 text-sm font-medium text-gray-700">
+                                        模式三: BOT / EMC (投资盈利)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </label>
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px; text-align: left;">
+                                        <b>BOT (建设-运营-移交):</b> 投资者出资建设，在合同期内运营并收费（卖热），期满后将项目移交给客户。<br><br>
+                                        <b>EMC (合同能源管理):</b> 能源服务公司为项目提供资金和技术，通过分享项目产生的“节能效益”来获利。
+                                    </span>
                                 </div>
-                            </fieldset>
+                                </fieldset>
                         </div>
                         <div class="input-group">
                             <div>
@@ -96,7 +100,6 @@
                             </div>
                         </div>
 
-                        <!-- 模式二：混合模式 -->
                         <div id="hybridConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-blue-300">
                             
                             <div class="input-group">
@@ -134,7 +137,6 @@
                             </div>
                         </div>
 
-                        <!-- 新增：模式三 BOT 专属输入 -->
                         <div id="botConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-green-300">
                             <h3 class="text-lg font-semibold text-green-800 mb-0">模式三: BOT / EMC 专属参数</h3>
                              <div class="input-group">
@@ -169,7 +171,6 @@
                              </div>
                         </div>
 
-                        <!-- 模式一/二：成本对比 -->
                         <div id="comparisonTogglesContainer" class="mt-6 pt-6 border-t">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 B (对比基准): 100% 传统热源投资 (请勾选)</h3>
                             <div class="input-group">
@@ -356,8 +357,7 @@
                                 </div>
                                 <div id="priceTierError" class="hidden text-red-600 text-center font-bold p-2 bg-red-50 rounded-md"></div>
                                 <div id="priceTiersContainer" class="space-y-3">
-                                    <!-- 电价时段将由 JS 动态插入这里 -->
-                                </div>
+                                    </div>
                             </div>
                             <div class="input-group mt-6 pt-6 border-t">
                                 <div class="tooltip-container gas-related">
@@ -494,11 +494,8 @@
                                  </div>
                              </div>
                          </div>
-                    </div> <!-- V11.0: standardModeSections 结束 -->
-
-                    <div id="lccParamsContainer" class="bg-white p-6 rounded-xl shadow-md">
+                    </div> <div id="lccParamsContainer" class="bg-white p-6 rounded-xl shadow-md">
                         <div class="flex items-center mb-4">
-                            <!-- V11.0: 标题 ID 更新，以便 JS 可以动态修改它 -->
                             <h2 id="section7Title" class="text-xl font-semibold border-l-4 border-blue-500 pl-3">7. 财务分析参数</h2>
                             <div class="tooltip-container ml-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -531,9 +528,7 @@
                         </div>
                     </div>
 
-                </div> <!-- space-y-6 结束 -->
-
-                <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
+                </div> <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
 
                  <button id="calculateBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 text-lg mt-6">
                     开始计算分析
@@ -559,8 +554,7 @@
                             <p class="mt-2">请填写上方参数并点击计算</p>
                         </div>
                         <div id="results-content" class="hidden space-y-6">
-                            <!-- 结果将由 JS 动态插入这里 -->
-                        </div>
+                            </div>
                     </div>
                 </div>
 
@@ -594,24 +588,18 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <!-- 暂存方案将由 JS 动态插入这里 -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                     <div id="scenario-summary" class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg space-y-2 hidden">
-                        <!-- 总结将由 JS 动态插入这里 -->
-                    </div>
+                        </div>
                 </div>
 
-            </div> <!-- space-y-8 结束 -->
-        </div> <!-- container 结束 -->
-
-        <footer class="text-center py-4 text-sm text-gray-500 border-t mt-8">
+            </div> </div> <footer class="text-center py-4 text-sm text-gray-500 border-t mt-8">
             <p>本程序已尽力确保正确，但不承担相关法律责任，App bug 请联系荆炎荣 15280122625。</p>
             <p class="mt-1">注：全寿命周期成本(LCC)与ROI计算基于净现值(NPV)法，符合《建设项目经济评价方法与参数》相关规定。</p>
         </footer>
 
-        <!-- 新增：确认模态框 (用于替换 confirm) -->
         <div id="confirm-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div class="mt-3 text-center">
@@ -636,14 +624,10 @@
             </div>
         </div>
 
-    </div> <!-- app-wrapper 结束 -->
-
-    <script type="module" src="main.js"></script>
+    </div> <script type="module" src="main.js"></script>
 
     <div id="print-report-container" class="print-only">
-        <!-- 打印报告将由 JS 动态插入这里 -->
-    </div>
+        </div>
     
 </body>
 </html>
-
