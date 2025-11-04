@@ -61,12 +61,17 @@ function setupComparisonToggles() {
     
     toggles.forEach(toggle => {
         const targetClass = toggle.dataset.target;
-        const capexInput = document.getElementById(`${targetClass}BoilerCapex`);
+
+        // --- 修复 BUG 1: "管网蒸汽" 的 ID 不一致 ---
+        // 修正： 'steam' 的 ID 是 'steamCapex'，其他是 '...BoilerCapex'
+        const capexInputId = (targetClass === 'steam') ? 'steamCapex' : `${targetClass}BoilerCapex`;
+        const capexInput = document.getElementById(capexInputId);
+        // --- 修复结束 ---
+
         const relatedFields = document.querySelectorAll(`.${targetClass}-related`);
 
-        // --- V11.3 修复逻辑 ---
-        // 重新定位父容器：toggle -> div.flex -> div (我们真正要操作的块)
-        const containerBlock = toggle.parentElement ? toggle.parentElement.parentElement : null;
+        // 目标容器是 capexInput 的父 div
+        const containerBlock = capexInput ? capexInput.parentElement : null;
 
         const applyToggleState = (isChecked) => {
             // 1. 切换整个块 (第2节) 的样式
@@ -90,10 +95,8 @@ function setupComparisonToggles() {
                 if (parentContainer) { 
                     parentContainer.classList.toggle('comparison-disabled', !isChecked);
                 }
-                // (原先处理残值率的 else if 逻辑已移除, 因为 containerBlock 会处理)
             });
         };
-        // --- 修复结束 ---
 
         toggle.addEventListener('change', () => {
             applyToggleState(toggle.checked);
@@ -351,52 +354,56 @@ export function initializeInputSetup(markResultsAsStale) {
              input.classList.toggle('default-param', input.value === defaultValue);
         }
 
+        // --- 修复 BUG 2: "Stale" 标记逻辑 ---
         input.addEventListener('input', (event) => {
             const currentInput = event.target;
             const currentDefaultValue = currentInput.dataset.defaultValue;
 
+            // 1. 切换 default-param 样式
             if (currentInput.classList.contains('default-param') || currentDefaultValue !== undefined) {
                  currentInput.classList.toggle('default-param', currentInput.value === currentDefaultValue);
             }
 
+            // 2. 仅在需要时执行单位换算逻辑
             const container = currentInput.closest('.tooltip-container');
-            if (!container) return; 
-            
-            const unitSelects = container.querySelectorAll('select');
-            const unitSelect = Array.from(unitSelects).find(sel => sel.id.endsWith('Unit'));
+            if (container) { 
+                const unitSelects = container.querySelectorAll('select');
+                const unitSelect = Array.from(unitSelects).find(sel => sel.id.endsWith('Unit'));
 
-            // 动态更新 data-base-value
-            if (unitSelect && unitSelect.id.includes('Unit')) {
-                const currentVal = parseFloat(currentInput.value);
-                if (isNaN(currentVal)) {
-                     const originalBaseValue = currentInput.getAttribute('data-base-value');
-                     currentInput.dataset.baseValue = originalBaseValue;
-                     if (currentInput.classList.contains('track-change')) {
-                         markResultsAsStale();
-                     }
-                     return;
-                }
+                // 动态更新 data-base-value
+                if (unitSelect && unitSelect.id.includes('Unit')) {
+                    const currentVal = parseFloat(currentInput.value);
+                    if (isNaN(currentVal)) {
+                         const originalBaseValue = currentInput.getAttribute('data-base-value');
+                         currentInput.dataset.baseValue = originalBaseValue;
+                         // (Stale 标记在下面统一处理)
+                         
+                    } else {
+                        const currentUnit = unitSelect.value;
+                        const converter = converters.find(c => c.selectId === unitSelect.id);
+                        
+                        if (converter) { // 增加健壮性检查
+                            const allConversions = converter.dynamicConversions ? converter.dynamicConversions() : converter.conversions;
+                            const conversionFactor = allConversions[currentUnit];
 
-                const currentUnit = unitSelect.value;
-                const converter = converters.find(c => c.selectId === unitSelect.id);
-                if (!converter) return;
-
-                const allConversions = converter.dynamicConversions ? converter.dynamicConversions() : converter.conversions;
-                const conversionFactor = allConversions[currentUnit];
-
-                if (currentVal === 0) {
-                    currentInput.dataset.baseValue = 0;
-                } else if (conversionFactor && conversionFactor !== 0) {
-                    const newBaseValue = currentVal / conversionFactor;
-                    currentInput.dataset.baseValue = newBaseValue.toFixed(6);
+                            if (currentVal === 0) {
+                                currentInput.dataset.baseValue = 0;
+                            } else if (conversionFactor && conversionFactor !== 0) {
+                                const newBaseValue = currentVal / conversionFactor;
+                                currentInput.dataset.baseValue = newBaseValue.toFixed(6);
+                            }
+                        }
+                    }
                 }
             }
             
-            // 触发陈旧标记
+            // 3. 触发陈旧标记 (移出 container 检查)
             if (currentInput.classList.contains('track-change')) {
                  markResultsAsStale();
             }
         });
+        // --- 修复结束 ---
+
 
         if (input.tagName === 'SELECT' || input.type === 'checkbox') {
              input.addEventListener('change', (event) => {
@@ -410,11 +417,10 @@ export function initializeInputSetup(markResultsAsStale) {
 
 
 /**
- * 从DOM中读取所有输入值，并进行验证
- * @param {function} showErrorCallback - (来自 ui-renderer) 用于显示错误的函数
- * @returns {object|null} 包含所有输入的 inputs 对象，如果验证失败则返回 null
+ * 从DOM中读取所有输入值 (V11.5: 不再验证)
+ * @returns {object} 包含所有输入的 inputs 对象
  */
-export function readAllInputs(showErrorCallback) {
+export function readAllInputs() { // V11.5: 移除了 showErrorCallback
     let totalDist = 0;
     const priceTiers = []; // V6.3
     
@@ -426,21 +432,8 @@ export function readAllInputs(showErrorCallback) {
         priceTiers.push({ name, price, dist });
     });
 
-    // 电价验证
-    if (priceTiers.length === 0) {
-        showErrorCallback('错误：必须至少有一个电价时段！');
-        return null;
-    }
-    if (Math.abs(totalDist - 100) > 0.1) {
-        showErrorCallback(`电价时段总比例必须为 100%，当前为 ${totalDist.toFixed(1)}%！`);
-        return null;
-    }
-    if (priceTiers.some(t => t.price <= 0 || t.dist <= 0)) {
-        showErrorCallback('电价时段的电价和比例必须大于 0！');
-        return null;
-    }
-    
-    showErrorCallback(null); // 清除错误
+    // --- V11.5: 移除所有电价验证 ---
+    // (已移动到 main.js)
 
     // 读取所有输入值
     const inputs = {
@@ -457,6 +450,7 @@ export function readAllInputs(showErrorCallback) {
         // 电价
         isGreenElectricity: document.getElementById('greenElectricityToggle').checked,
         priceTiers: priceTiers, // V6.3
+        totalPriceTierDistribution: totalDist, // V11.5: 新增，传递给 main.js 验证
         // 基本信息
         projectName: document.getElementById('projectName').value, 
         heatingLoad: parseFloat(document.getElementById('heatingLoad').value) || 0,
@@ -476,7 +470,8 @@ export function readAllInputs(showErrorCallback) {
         biomassSalvageRate: (parseFloat(document.getElementById('biomassSalvageRate').value) || 0) / 100,
         electricBoilerCapex: parseFloat(document.getElementById('electricBoilerCapex').value) * 10000 || 0,
         electricSalvageRate: (parseFloat(document.getElementById('electricSalvageRate').value) || 0) / 100,
-        steamCapex: parseFloat(document.getElementById('steamCapex').value) * 10000 || 0,
+        // (维持 'steamCapex' ID 不变, 以匹配 HTML)
+        steamCapex: parseFloat(document.getElementById('steamCapex').value) * 10000 || 0, 
         steamSalvageRate: (parseFloat(document.getElementById('steamSalvageRate').value) || 0) / 100,
         // 运行参数
         hpCop: parseFloat(document.getElementById('hpCop').value) || 0,
@@ -529,11 +524,7 @@ export function readAllInputs(showErrorCallback) {
         }
     };
 
-    if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
-        showErrorCallback('关键参数（制热负荷、运行小时、SPF/COP）必须大于 0！');
-        return null;
-    }
+    // V11.4: 移除此处的通用验证，它被移到了 main.js
 
     return inputs;
 }
-
