@@ -326,14 +326,17 @@ export function runAnalysis(inputs) {
         const cash_flows = [];
         cash_flows.push(-investmentDiff); // Year 0
 
+        // --- IRR BUG 修正开始 ---
+        // 修正了 Math.pow(inflationRate, ...) 为 Math.pow(1 + inflationRate, ...)
         for (let n = 1; n <= lccYears; n++) {
-            const hpEnergyCost_n = hpSystemDetails.energyCost * Math.pow(energyInflationRate, n - 1);
-            const boilerEnergyCost_n = boiler.energyCost * Math.pow(energyInflationRate, n - 1);
-            const hpOpexCost_n = hpSystemDetails.opexCost * Math.pow(opexInflationRate, n - 1);
-            const boilerOpexCost_n = boiler.opexCost * Math.pow(opexInflationRate, n - 1);
+            const hpEnergyCost_n = hpSystemDetails.energyCost * Math.pow(1 + energyInflationRate, n - 1);
+            const boilerEnergyCost_n = boiler.energyCost * Math.pow(1 + energyInflationRate, n - 1);
+            const hpOpexCost_n = hpSystemDetails.opexCost * Math.pow(1 + opexInflationRate, n - 1);
+            const boilerOpexCost_n = boiler.opexCost * Math.pow(1 + opexInflationRate, n - 1);
             const annualSaving_n = (boilerEnergyCost_n + boilerOpexCost_n) - (hpEnergyCost_n + hpOpexCost_n);
             cash_flows.push(annualSaving_n);
         }
+        // --- IRR BUG 修正结束 ---
         
         const hpSalvageValue = hpSystemDetails.lcc.salvageValue;
         const boilerSalvageValue = boiler.lcc.salvageValue;
