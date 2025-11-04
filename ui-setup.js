@@ -64,28 +64,36 @@ function setupComparisonToggles() {
         const capexInput = document.getElementById(`${targetClass}BoilerCapex`);
         const relatedFields = document.querySelectorAll(`.${targetClass}-related`);
 
+        // --- V11.3 修复逻辑 ---
+        // 重新定位父容器：toggle -> div.flex -> div (我们真正要操作的块)
+        const containerBlock = toggle.parentElement ? toggle.parentElement.parentElement : null;
+
         const applyToggleState = (isChecked) => {
+            // 1. 切换整个块 (第2节) 的样式
+            if (containerBlock) {
+                containerBlock.classList.toggle('comparison-disabled', !isChecked);
+            }
+
+            // 2. 禁用/启用投资额输入框
             if (capexInput) {
                 capexInput.disabled = !isChecked;
-                // --- 修正开始 ---
-                // 同时切换 capexInput 父容器的 'comparison-disabled' 样式
-                if (capexInput.parentElement) {
-                    capexInput.parentElement.classList.toggle('comparison-disabled', !isChecked);
-                }
-                // --- 修正结束 ---
             }
+
+            // 3. 切换所有其他相关字段 (第3, 4, 5, 6节) 的状态
             relatedFields.forEach(field => {
-                if (field.tagName === 'INPUT' || field.tagName === 'SELECT') field.disabled = !isChecked;
-                
-                const parentContainer = field.closest('.tooltip-container');
-                if (parentContainer) {
-                    parentContainer.classList.toggle('comparison-disabled', !isChecked);
-                } else if (field.parentElement && field.parentElement.tagName === 'DIV') { // V11.2: 增强判空
-                    // 适用于残值率的布局
-                     field.parentElement.classList.toggle('comparison-disabled', !isChecked);
+                if (field.tagName === 'INPUT' || field.tagName === 'SELECT') {
+                    field.disabled = !isChecked;
                 }
+                
+                // 切换 tooltip 容器的样式 (适用于第 3-6 节)
+                const parentContainer = field.closest('.tooltip-container');
+                if (parentContainer) { 
+                    parentContainer.classList.toggle('comparison-disabled', !isChecked);
+                }
+                // (原先处理残值率的 else if 逻辑已移除, 因为 containerBlock 会处理)
             });
         };
+        // --- 修复结束 ---
 
         toggle.addEventListener('change', () => {
             applyToggleState(toggle.checked);
