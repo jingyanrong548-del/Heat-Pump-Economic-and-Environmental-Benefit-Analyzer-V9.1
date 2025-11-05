@@ -219,6 +219,7 @@ function renderBotResults(results) {
     const equityNpvColor = (equityNPV > 0) ? 'text-green-600' : 'text-red-600';
     const equityPbpColor = (equityPBP !== null && equityPBP > 0) ? 'text-blue-600' : 'text-red-600';
 
+    // **** 修复开始：此处为您添加了带备注的工具提示 (Tooltip) ****
     const botCardsHTML = `
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg result-card">
             <h3 class="font-bold text-lg text-blue-800">项目总投资 (万元)</h3>
@@ -226,41 +227,74 @@ function renderBotResults(results) {
         </div>
         
         <div class="bg-gray-100 p-4 rounded-lg space-y-3 result-card" style="transition-delay: 50ms;">
-            <h4 class="font-bold text-lg text-gray-800 border-b pb-2">项目全投资 (TIRR) 分析</h4>
+            <h4 class="font-bold text-lg text-gray-800 border-b pb-2">项目全投资 (TIRR) 分析 <span class="text-sm font-normal text-gray-500">(看项目本身)</span></h4>
             <div class="space-y-1">
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">内部收益率 (IRR)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        内部收益率 (IRR)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“这个项目本身好不好？”</b><br><br>TIRR (全投资IRR) 是把项目当成一个独立的生意来看的“年化收益率”，不管钱是借的还是自己的。<br><br><b>TIRR > 折现率(“及格线”)</b>，说明这个生意本身是赚钱的。</span>
+                    </span>
                     <span class="font-bold ${irrColor}">${fPercent(irr)}</span>
                 </div>
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">净现值 (NPV)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        净现值 (NPV)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“项目最终是赚是赔？”</b><br><br>把项目${lccYears}年内赚的所有钱，折算成今天的钱，再减去总投资。<br><br><b>NPV > 0</b>，项目就可行 (即已超过及格线)。</span>
+                    </span>
                     <span class="font-bold ${npvColor}">${fInvest(npv)} 万元</span>
                 </div>
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">动态回收期 (PBP)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        动态回收期 (PBP)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“多少年能收回总投资？”</b><br><br>考虑了利息和通胀后，“真正”需要多少年才能收回全部投资成本。</span>
+                    </span>
                     <span class="font-bold ${pbpColor}">${fYears(pbp)}</span>
                 </div>
+
             </div>
         </div>
         
         <div class="bg-gray-100 p-4 rounded-lg space-y-3 result-card" style="transition-delay: 100ms;">
-            <h4 class="font-bold text-lg text-gray-800 border-b pb-2">项目资本金 (EIRR) 分析</h4>
+            <h4 class="font-bold text-lg text-gray-800 border-b pb-2">项目资本金 (EIRR) 分析 <span class="text-sm font-normal text-gray-500">(看我们自己投的钱)</span></h4>
             <div class="space-y-1">
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">资本金内部收益率 (EIRR)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        资本金内部收益率 (EIRR)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“我们自己能赚多少？”</b><br><br>EIRR 是<b>我们(投资者)自己掏的“本钱”</b>(那${fPercent(inputs.botEquityRatio, 0)})，能获得的“年化收益率”。<br><br><b>提示:</b> 因为加了银行贷款(杠杆)，这个值通常会高于项目的IRR，是我们最关心的指标。</span>
+                    </span>
                     <span class="font-bold ${equityIrrColor}">${fPercent(equityIRR)}</span>
                 </div>
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">资本金净现值 (ENPV)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        资本金净现值 (ENPV)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“我们自己的钱能额外赚多少？”</b><br><br>我们自己掏的“本钱”，在${lccYears}年后，折算成今天，能“额外”赚多少钱。<br><br><b>ENPV > 0</b> 意味着我们自己的钱也达到了及格线。</span>
+                    </span>
                     <span class="font-bold ${equityNpvColor}">${fInvest(equityNPV)} 万元</span>
                 </div>
+
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-700">资本金动态回收期 (EPBP)</span>
+                    <span class="text-gray-700 tooltip-container">
+                        资本金动态回收期 (EPBP)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“多少年能收回本钱？”</b><br><br>我们自己掏的“本钱”，需要多少年才能收回。</span>
+                    </span>
                     <span class="font-bold ${equityPbpColor}">${fYears(equityPBP)}</span>
                 </div>
+
             </div>
         </div>
     `;
+    // **** 修复结束 ****
     resultsContent.innerHTML = botCardsHTML;
 
     // --- Conclusion ---
@@ -311,7 +345,19 @@ function renderCostComparisonResults(results) {
     const hpCardTitleLCC = isHybrid ? `混合系统 LCC (${lccYears}年)` : `工业热泵系统 LCC (${lccYears}年)`;
 
     const hpCardStatic = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg result-card"><h3 class="font-bold text-lg text-blue-800">${hpCardTitleStatic}</h3><p class="text-2xl font-bold text-blue-600">${fWan(hpSystemDetails.opex)} 万元</p></div>`;
-    const hpCardLCC = `<div class="bg-blue-100 border-l-4 border-blue-600 p-4 rounded-lg result-card" style="transition-delay: 50ms;"><h3 class="font-bold text-lg text-blue-900">${hpCardTitleLCC}</h3><p class="text-2xl font-bold text-blue-700">${fWan(hpSystemDetails.lcc.total)} 万元</p></div>`;
+    
+    // **** 修复开始：为 LCC 卡片添加工具提示 ****
+    const hpCardLCC = `
+    <div class="bg-blue-100 border-l-4 border-blue-600 p-4 rounded-lg result-card" style="transition-delay: 50ms;">
+        <h3 class="font-bold text-lg text-blue-900 tooltip-container">
+            ${hpCardTitleLCC}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“总的真实成本”</b>。<br><br>LCC = 初始投资 + (未来${lccYears}年所有运营成本 - ${lccYears}年后残值)<br><br>只看“初始投资”是短视的。LCC 低的方案，才是真正“划算”的方案。</span>
+        </h3>
+        <p class="text-2xl font-bold text-blue-700">${fWan(hpSystemDetails.lcc.total)} 万元</p>
+    </div>`;
+    // **** 修复结束 ****
+
     resultsContent.innerHTML += hpCardStatic + hpCardLCC;
 
     // --- Comparison Cards (Loop) ---
@@ -323,6 +369,7 @@ function renderCostComparisonResults(results) {
         const energySavingColor = boiler.energyCostSaving > 0 ? 'text-green-600' : 'text-red-600'; 
         const simpleRoiColor = boiler.simpleROI !== null ? 'text-green-600' : 'text-gray-500';
 
+        // **** 修复开始：为 LCC 标题行添加工具提示 ****
         const resultCard = `
         <div class="bg-gray-100 p-4 rounded-lg space-y-3 result-card" style="transition-delay: ${100 * (index + 1)}ms;">
             <h4 class="font-bold text-lg text-gray-800 border-b pb-2">与 <span class="text-blue-600">${boiler.name}</span> 对比</h4>
@@ -338,14 +385,14 @@ function renderCostComparisonResults(results) {
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-700 tooltip-container">净现值 (NPV)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>通俗解释:</b> 把未来所有省/赚的钱折算成今天, 再减去初始投资, 看是正还是负。<b>NPV > 0 代表项目可行</b>, 不仅达到最低回报要求 (折现率), 还额外多赚了。</span>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“项目最终是赚是赔？”</b><br><br>把未来${lccYears}年所有省的钱，折算成今天的钱，再减去今天多花的投资。<br><br><b>NPV > 0</b>，说明赚的钱超过了“及格线”（${fPercent(discountRate, 0)}）。</span>
                     </span>
                     <span class="font-bold ${npvColor}">${fWan(boiler.npv)} 万元</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-700 tooltip-container">内部收益率 (IRR)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>通俗解释:</b> 这个项目本身的“年化收益率”。<b>IRR > 折现率 (基准收益率) 代表项目优秀</b>, 回报高于你的最低要求。</span>
+                        <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“这项投资的年化收益率”</b><br><br>对比锅炉，我们多花了钱（额外投资），每年也多省了钱。IRR 就是这笔“额外投资”带来的“年化回报”。<br><br><b>IRR > 折现率(${fPercent(discountRate, 0)})</b>，这笔投资就值。</span>
                     </span>
                     <span class="font-bold ${irrColor}">${fPercent(boiler.irr)}</span>
                 </div>
@@ -362,7 +409,7 @@ function renderCostComparisonResults(results) {
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-700 tooltip-container">电热价格比 (EPR)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="tooltip-text" style="width: 320px; margin-left: -160px;"><b>IEA/欧洲常用指标 (EPR):</b> (锅炉产热成本) / (工业热泵产热成本)。<br><b>EPR > 1.0</b> 时，工业热泵运行成本更低。<br><b>EPR = 2.0</b> 意味着工业热泵成本是锅炉的50%。</span>
+                        <span class="tooltip-text" style="width: 320px; margin-left: -160px;"><b>“工业热泵产热有多便宜？”</b><br><br>EPR = (锅炉产1度热的成本) / (工业热泵产1度热的成本)<br><br><b>EPR = 2.0</b> 意味着工业热泵的产热成本<b>只有</b>锅炉的 50%。<b>EPR 越高越好</b>。</span>
                     </span>
                     <span class="font-bold ${(boiler.electricalPriceRatio > 1.0 || (boiler.electricalPriceRatio === null && boiler.key === 'electric')) ? 'text-green-600' : 'text-red-600'}">
                         ${boiler.electricalPriceRatio ? boiler.electricalPriceRatio.toFixed(2) : (boiler.key === 'electric' ? 'N/A' : '0.00')}
@@ -390,7 +437,10 @@ function renderCostComparisonResults(results) {
                 </div>
             </div>
             <div class="space-y-1 pt-2 border-t">
-                <h5 class="font-semibold text-gray-700 text-md">视角: 全生命周期成本 (LCC)</h5>
+                <h5 class="font-semibold text-gray-700 text-md tooltip-container">视角: 全生命周期成本 (LCC)
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>“总的真实成本”</b>。<br><br>LCC = 初始投资 + (未来${lccYears}年所有运营成本 - ${lccYears}年后残值)<br><br>只看“初始投资”是短视的。LCC 低的方案，才是真正“划算”的方案。</span>
+                </h5>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">${isHybrid ? '混合系统' : '工业热泵'} LCC:</span>
                     <span class="font-semibold text-blue-700 text-right">${fWan(hpSystemDetails.lcc.total)} 万元</span>
@@ -401,6 +451,7 @@ function renderCostComparisonResults(results) {
                 </div>
             </div>
         </div>`;
+        // **** 修复结束 ****
         resultsContent.innerHTML += resultCard;
     });
 
@@ -478,8 +529,8 @@ function populateBotCalculationDetails(results) {
                 <tr><td>工业热泵主机投资</td><td class="align-right">${fInvest(inputs.hpHostCapex / 10000)}</td><td></td></tr>
                 <tr><td>储能系统投资</td><td class="align-right">${fInvest(inputs.hpStorageCapex / 10000)}</td><td></td></tr>
                 <tr class="font-bold"><td>A. 项目总投资</td><td class="align-right">${fInvest(summary.investment)}</td><td></td></tr>
-                <tr><td>B. 资本金 (自有)</td><td class="align-right">${fInvest(summary.equity)}</td><td>总投资 * ${fPercent(inputs.botEquityRatio)}</td></tr>
-                <tr><td>C. 银行贷款 (负债)</td><td class="align-right">${fInvest(summary.loan)}</td><td>总投资 * ${fPercent(1 - inputs.botEquityRatio)}</td></tr>
+                <tr><td>B. 资本金 (自有)</td><td class="align-right">${fInvest(summary.equity)}</td><td>总投资 * ${fPercent(inputs.botEquityRatio, 0)}</td></tr>
+                <tr><td>C. 银行贷款 (负债)</td><td class="align-right">${fInvest(summary.loan)}</td><td>总投资 * ${fPercent(1 - inputs.botEquityRatio, 0)}</td></tr>
             </tbody>
         </table>
 
@@ -614,7 +665,7 @@ function populateCostComparisonCalculationDetails(results) {
         let hpEnergyCostDetailsHTML = '';
         if (hp.energyCostDetails.tiers && hp.energyCostDetails.tiers.length > 0) {
             hp.energyCostDetails.tiers.forEach(tier => {
-                hpEnergyCostDetailsHTML += `<p class="pl-4">↳ <b>${tier.name}:</b> ${fNum(tier.elec, 0)} kWh * ${tier.price} 元/kWh = ${fYuan(t.cost)} 元</p>`;
+                hpEnergyCostDetailsHTML += `<p class="pl-4">↳ <b>${tier.name}:</b> ${fNum(tier.elec, 0)} kWh * ${tier.price} 元/kWh = ${fYuan(tier.cost)} 元</p>`;
             });
             hpEnergyCostDetailsHTML += `<p><b>年能源成本 (各时段合计):</b> ${fYuan(hp.energyCost)} 元</p>`;
         }

@@ -140,21 +140,37 @@
                         <div id="botConfigInputs" class="hidden space-y-6 mt-6 pt-6 border-t border-dashed border-green-300">
                             <h3 class="text-lg font-semibold text-green-800 mb-0">模式三: BOT / EMC 专属参数</h3>
                              <div class="input-group">
-                                <div>
-                                    <label for="botAnnualRevenue" class="block text-sm font-medium text-gray-700">年销售收入 (万元)</label>
+                                <div class="tooltip-container">
+                                    <label for="botAnnualRevenue" class="block text-sm font-medium text-gray-700">
+                                        年销售收入 (万元)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
                                     <input type="number" id="botAnnualRevenue" value="150" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>这是 BOT 模式的“命根子”</b>。<br><br>这是我们和客户谈好的“每年卖热的总价钱”。这个数字的合理性，直接决定了我们（投资者）的利润。</span>
                                 </div>
-                                <div>
-                                    <label for="botEquityRatio" class="block text-sm font-medium text-gray-700">资本金比例 (%)</label>
+                                <div class="tooltip-container">
+                                    <label for="botEquityRatio" class="block text-sm font-medium text-gray-700">
+                                        资本金比例 (%)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
                                     <input type="number" id="botEquityRatio" value="30" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>我们自己掏多少钱？</b><br><br>假设总投资200万，您填30%，意思就是我们自己掏 60万，剩下 140万 找银行贷款。这个比例会极大影响“资本金收益率 (EIRR)”。</span>
                                 </div>
-                                <div>
-                                    <label for="botLoanInterestRate" class="block text-sm font-medium text-gray-700">贷款利率 (%)</label>
+                                <div class="tooltip-container">
+                                    <label for="botLoanInterestRate" class="block text-sm font-medium text-gray-700">
+                                        贷款利率 (%)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
                                     <input type="number" id="botLoanInterestRate" value="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text"><b>默认值: 5 %</b><br>我们(投资者)向银行贷款的年化利率。</span>
                                 </div>
-                                <div>
-                                    <label for="botDepreciationYears" class="block text-sm font-medium text-gray-700">折旧年限 (年)</label>
+                                <div class="tooltip-container">
+                                    <label for="botDepreciationYears" class="block text-sm font-medium text-gray-700">
+                                        折旧年限 (年)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
                                     <input type="number" id="botDepreciationYears" value="10" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>会计做账用的“成本分摊”</b>。<br><br>它<b>不是</b>我们真正掏出去的钱，但它在账面上可以“抵扣利润”，从而帮我们<b>少交所得税</b>。</span>
                                 </div>
                                 <div>
                                     <label for="botVatRate" class="block text-sm font-medium text-gray-700">增值税率 (%)</label>
@@ -170,7 +186,6 @@
                                 </div>
                              </div>
                         </div>
-
                         <div id="comparisonTogglesContainer" class="mt-6 pt-6 border-t">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">方案 B (对比基准): 100% 传统热源投资 (请勾选)</h3>
                             <div class="input-group">
@@ -494,7 +509,9 @@
                                  </div>
                              </div>
                          </div>
-                    </div> <div id="lccParamsContainer" class="bg-white p-6 rounded-xl shadow-md">
+                    </div> 
+                    
+                    <div id="lccParamsContainer" class="bg-white p-6 rounded-xl shadow-md">
                         <div class="flex items-center mb-4">
                             <h2 id="section7Title" class="text-xl font-semibold border-l-4 border-blue-500 pl-3">7. 财务分析参数</h2>
                             <div class="tooltip-container ml-2">
@@ -506,14 +523,20 @@
                         </div>
                         <div class="input-group">
                             <div class="tooltip-container">
-                                <label for="lccYears" class="block text-sm font-medium text-gray-700">经济分析年限 (年)</label>
+                                <label for="lccYears" class="block text-sm font-medium text-gray-700">
+                                    经济分析年限 (年)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </label>
                                 <input type="number" id="lccYears" value="15" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
-                                <span class="tooltip-text"><b>默认值: 15 年</b><br>工业热泵系统及锅炉的典型经济寿命。</span>
+                                <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>我们打算算多少年的总账？</b><br><br>通常取设备的主要经济寿命（比如15年）。这个年限越长，初始投资(CAPEX)的影响就越小，LCC 和 PBP 的计算就越偏向于“运营成本”。</span>
                             </div>
                             <div class="tooltip-container">
-                                <label for="discountRate" class="block text-sm font-medium text-gray-700">折现率 (基准收益率, %)</label>
+                                <label for="discountRate" class="block text-sm font-medium text-gray-700">
+                                    折现率 (基准收益率, %)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </label>
                                 <input type="number" id="discountRate" value="8" step="0.1" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 default-param track-change">
-                                <span class="tooltip-text"><b>默认值: 8 %</b><br>即基准收益率，用于计算资金的时间价值。IRR > 此值，则项目可行。</span>
+                                <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>这是最重要的“及格线”</b>。<br><br>您可以把它理解为“我们对这个项目最低的年化收益要求”。如果项目连这个数都达不到（比如 8%），那还不如把钱存银行或投别的。<br><br><b>IRR 必须 > 这个数</b>，项目才算优秀。</span>
                             </div>
                             <div class="tooltip-container">
                                 <label for="energyInflationRate" class="block text-sm font-medium text-gray-700">能源价格年均涨幅 (%)</label>
@@ -527,8 +550,7 @@
                             </div>
                         </div>
                     </div>
-
-                </div> <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
+                    </div> <div id="stale-results-notice" class="hidden text-red-600 text-center font-bold my-4">参数已更改，请重新计算！</div>
 
                  <button id="calculateBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 text-lg mt-6">
                     开始计算分析
