@@ -431,10 +431,15 @@ function renderCostComparisonResults(results) {
                     <span class="text-gray-600">静态回报期 (总成本):</span>
                     <span class="font-semibold text-right">${boiler.paybackPeriod}</span>
                 </div>
+                
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">基准年能源消耗:</span>
+                    <span class="font-semibold text-gray-700 text-right">${fNum(boiler.consumption, 2)} ${boiler.consumptionUnit}</span>
+                </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">年碳减排量:</span>
-                    <span class="font-semibold text-green-600 text-right">${boiler.co2Reduction.toFixed(2)} 吨 CO₂</span>
-                </div>
+                    <span class="font-semibold text-green-600 text-right">${fTon(boiler.co2Reduction)} 吨 CO₂</span>
+                    </div>
             </div>
             <div class="space-y-1 pt-2 border-t">
                 <h5 class="font-semibold text-gray-700 text-md tooltip-container">视角: 全生命周期成本 (LCC)
@@ -474,7 +479,12 @@ function renderCostComparisonResults(results) {
     const positiveCO2Reducers = comparisons.filter(c => c.co2Reduction > 0);
     if (positiveCO2Reducers.length > 0) {
         const bestEnviro = positiveCO2Reducers.reduce((p, c) => (p.co2Reduction > c.co2Reduction) ? p : c);
-        conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>替代 <b>${bestEnviro.name}</b> 的环境效益最为显著，年碳减排量可达 <b>${bestEnviro.co2Reduction.toFixed(2)}</b> 吨CO₂，相当于植树约 <b>${fInt(bestEnviro.treesPlanted)}</b> 棵。</p>`;
+        
+        // **** BUG 修复开始 ****
+        // 旧代码: ${bestEnviro.co2Reduction.toFixed(2)}
+        conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>替代 <b>${bestEnviro.name}</b> 的环境效益最为显著，年碳减排量可达 <b>${fTon(bestEnviro.co2Reduction)}</b> 吨CO₂，相当于植树约 <b>${fInt(bestEnviro.treesPlanted)}</b> 棵。</p>`;
+        // **** BUG 修复结束 ****
+
     } else if (comparisons.length > 0) {
          conclusionHTML += `<p class="text-sm text-gray-700"><b>环境效益 (年)：</b>根据当前参数，${isHybrid ? '混合' : '工业热泵'}方案相较于所选对比方案均无碳减排优势。</p>`;
     }
@@ -651,7 +661,7 @@ function populateCostComparisonCalculationDetails(results) {
                  <div class="pt-2 border-t mt-2">
                     <p><b>对比: ${hybridSystem.name} vs ${c.name}</b></p>
                     <p class="pl-4"><b>EPR (电热价格比):</b> ${boiler.cost_per_kwh_heat.toFixed(4)} / ${hybridSystem.cost_per_kwh_heat.toFixed(4)} = <b>${c.electricalPriceRatio ? c.electricalPriceRatio.toFixed(2) : 'N/A'}</b></p>
-                    <p class="pl-4"><b>年碳减排量:</b> (${fNum(boiler.co2, 0)} - ${fNum(hybridSystem.co2, 0)}) kg = <b>${fNum(c.co2Reduction * 1000, 0)} kg</b></p>
+                    <p class="pl-4"><b>年碳减排量:</b> (${fNum(boiler.co2, 0)} - ${fNum(hybridSystem.co2, 0)}) kg = <b>${fNum(c.co2Reduction, 0)} kg</b></p>
                     <p class="pl-4"><b>额外投资 (ΔInvest):</b> ${fWan(hybridSystem.lcc.capex)} - ${fWan(boiler.lcc.capex)} = <b>${fWan(c.investmentDiff)} 万元</b></p>
                     <p class="pl-4"><b>年节省总成本 (Save_Y1):</b> ${fWan(boiler.opex)} - ${fWan(hybridSystem.opex)} = <b>${fWan(c.opexSaving)} 万元</b></p>
                     <p class="pl-4 text-blue-700 font-bold">↳ LCC 节省 (NPV): ${fWan(boiler.lcc.total)} - ${fWan(hybridSystem.lcc.total)} = <b>${fWan(c.npv)} 万元</b></p>
@@ -954,6 +964,7 @@ function buildCostComparisonPrintReport(results) {
                             <th class="align-right">动态 PBP (年)</th>
                             <th class="align-right">年节省总成本 (万)</th>
                             <th class="align-right">EPR</th>
+                            <th class="align-right">基准年能耗</th>
                             <th class="align-right">年碳减排 (tCO₂)</th>
                         </tr>
                     </thead>
@@ -968,8 +979,9 @@ function buildCostComparisonPrintReport(results) {
                     <td class="align-right">${fYears(c.dynamicPBP)}</td>
                     <td class="align-right">${fWan(c.opexSaving)}</td>
                     <td class="align-right">${fNum(c.electricalPriceRatio, 2)}</td>
-                    <td class="align-right">${fTon(c.co2Reduction / 1000)}</td>
-                </tr>
+                    <td class="align-right">${fNum(c.consumption, 2)} ${c.consumptionUnit}</td>
+                    <td class="align-right">${fTon(c.co2Reduction)}</td>
+                    </tr>
             `;
         });
         reportHTML += `
@@ -1028,6 +1040,7 @@ function buildCostComparisonPrintReport(results) {
                             <th class="align-right">IRR (%)</th>
                             <th class="align-right">动态 PBP (年)</th>
                             <th class="align-right">EPR</th>
+                            <th class="align-right">基准年能耗</th>
                             <th class="align-right">年碳减排 (tCO₂)</th>
                         </tr>
                     </thead>
@@ -1041,8 +1054,9 @@ function buildCostComparisonPrintReport(results) {
                     <td class="align-right">${fPercent(c.irr)}</td>
                     <td class="align-right">${fYears(c.dynamicPBP)}</td>
                     <td class="align-right">${fNum(c.electricalPriceRatio, 2)}</td>
-                    <td class="align-right">${fTon(c.co2Reduction / 1000)}</td>
-                </tr>
+                    <td class="align-right">${fNum(c.consumption, 2)} ${c.consumptionUnit}</td>
+                    <td class="align-right">${fTon(c.co2Reduction)}</td>
+                    </tr>
             `;
         });
         reportHTML += `

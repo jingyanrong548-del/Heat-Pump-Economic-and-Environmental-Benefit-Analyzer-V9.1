@@ -439,12 +439,19 @@ function runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEn
             key: boiler.key, name: boiler.name,
             opex: boiler.opex, opexSaving,
             investmentDiff, paybackPeriod,
-            co2Reduction: co2Reduction / 1000, // convert kg to ton
+            // **** 修改 1 开始 (Bug修复) ****
+            // co2Reduction: co2Reduction / 1000, // convert kg to ton (旧代码)
+            co2Reduction: co2Reduction, // in kg (新代码)
+            // **** 修改 1 结束 ****
             treesPlanted,
             lcc: boiler.lcc.total, lccSaving,
             npv, irr, dynamicPBP,
             simpleROI, electricalPriceRatio,
-            energyCostSaving, energyCostSavingRate
+            energyCostSaving, energyCostSavingRate,
+            // **** 修改 2 开始 (功能增加) ****
+            consumption: boiler.consumption,
+            consumptionUnit: boiler.consumptionUnit
+            // **** 修改 2 结束 ****
         };
     });
 
@@ -470,11 +477,15 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
     let name = "未知";
     let cost_per_kwh_heat = 0; 
     let salvageValue = 0;
+    // **** 修改 2 开始 (功能增加) ****
+    let consumptionUnit = ''; // 存储能耗单位
+    // **** 修改 2 结束 ****
 
     switch (boilerKey) {
         case 'gas':
             name = "天然气锅炉";
             salvageRate = inputs.gasSalvageRate;
+            consumptionUnit = 'm³'; // (功能增加)
             if (inputs.gasBoilerEfficiency > 0 && inputs.gasCalorific > 0) {
                 const gasRequiredMJ = annualHeatingDemandMJ / inputs.gasBoilerEfficiency;
                 consumption = gasRequiredMJ / inputs.gasCalorific; // m³
@@ -486,6 +497,7 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         case 'fuel':
             name = "燃油锅炉";
             salvageRate = inputs.fuelSalvageRate;
+            consumptionUnit = '吨'; // (功能增加)
             if (inputs.fuelBoilerEfficiency > 0 && inputs.fuelCalorific > 0) {
                 const fuelRequiredMJ = annualHeatingDemandMJ / inputs.fuelBoilerEfficiency;
                 const fuelWeightKg = fuelRequiredMJ / inputs.fuelCalorific;
@@ -498,6 +510,7 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         case 'coal':
             name = "燃煤锅炉";
             salvageRate = inputs.coalSalvageRate;
+            consumptionUnit = '吨'; // (功能增加)
             if (inputs.coalBoilerEfficiency > 0 && inputs.coalCalorific > 0) {
                 const coalRequiredMJ = annualHeatingDemandMJ / inputs.coalBoilerEfficiency;
                 const coalWeightKg = coalRequiredMJ / inputs.coalCalorific;
@@ -510,6 +523,7 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         case 'biomass':
             name = "生物质锅炉";
             salvageRate = inputs.biomassSalvageRate;
+            consumptionUnit = '吨'; // (功能增加)
             if (inputs.biomassBoilerEfficiency > 0 && inputs.biomassCalorific > 0) {
                 const biomassRequiredMJ = annualHeatingDemandMJ / inputs.biomassBoilerEfficiency;
                 const biomassWeightKg = biomassRequiredMJ / inputs.biomassCalorific;
@@ -522,6 +536,7 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         case 'electric':
             name = "电锅炉";
             salvageRate = inputs.electricSalvageRate;
+            consumptionUnit = 'kWh'; // (功能增加)
             if (inputs.electricBoilerEfficiency > 0) {
                   consumption = heatingDemandKWh / inputs.electricBoilerEfficiency; // kWh
                  energyCost = consumption * weightedAvgElecPrice;
@@ -532,6 +547,7 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         case 'steam':
             name = "管网蒸汽";
             salvageRate = inputs.steamSalvageRate;
+            consumptionUnit = '吨'; // (功能增加)
             if (inputs.steamEfficiency > 0 && inputs.steamCalorific > 0) {
                 const steamRequiredKwh = heatingDemandKWh / inputs.steamEfficiency;
                 consumption = steamRequiredKwh / inputs.steamCalorific; // 吨
@@ -554,7 +570,9 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
     return {
         key: boilerKey, name: name,
         energyCost: energyCost, opexCost: opexCost, opex: opex_Year1,
-        co2: co2, consumption: consumption, cost_per_kwh_heat: cost_per_kwh_heat,
+        // **** 修改 2 开始 (功能增加) ****
+        co2: co2, consumption: consumption, consumptionUnit: consumptionUnit, cost_per_kwh_heat: cost_per_kwh_heat,
+        // **** 修改 2 结束 ****
         lcc: {
             capex: capex, energyNPV: energyNPV, opexNPV: opexNPV,
             salvageRate: salvageRate, salvageNPV: salvageNPV,
@@ -562,4 +580,3 @@ function calculateBoilerDetails(boilerKey, heatingDemandKWh, capex, opexCost, lc
         }
     };
 }
-
