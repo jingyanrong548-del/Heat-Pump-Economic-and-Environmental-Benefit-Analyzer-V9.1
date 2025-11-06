@@ -551,8 +551,8 @@ function populateBotCalculationDetails(results) {
                 <tr><td class="pl-6">减: 增值税 (销项)</td><td class="align-right">${fInvest(annualAvg.vat)}</td><td>(总收入 / (1 + ${fPercent(inputs.botVatRate, 0)})) * ${fPercent(inputs.botVatRate, 0)}</td></tr>
                 <tr><td><b>B. 营业收入 (不含税)</b></td><td class="align-right"><b>${fInvest(annualAvg.revenueNetVat)}</b></td><td></td></tr>
                 <tr><td><b>C. 总成本费用</b></td><td class="align-right"><b>${fInvest(totalCost)}</b></td><td></td></tr>
-                <tr><td class="pl-6">1. 能源成本 (电费)</td><td class="align-right">${fInvest(energyCost)}</td><td></td></tr>
-                <tr><td class="pl-6">2. 运维成本 (O&M)</td><td class="align-right">${fInvest(opexCost)}</td><td></td></tr>
+                <tr><td class="pl-6">1. 能源成本</td><td class="align-right">${fInvest(energyCost)}</td><td>(来自BOT模式独立输入)</td></tr>
+                <tr><td class="pl-6">2. 运维成本 (O&M)</td><td class="align-right">${fInvest(opexCost)}</td><td>(来自BOT模式独立输入)</td></tr>
                 <tr><td class="pl-6">3. 折旧费用</td><td class="align-right">${fInvest(depreciation)}</td><td>总投资 / ${inputs.botDepreciationYears} 年</td></tr>
                 <tr><td class="pl-6">4. 利息支出</td><td class="align-right">${fInvest(interest)}</td><td>基于贷款余额计算</td></tr>
                 <tr><td class="pl-6">5. 税金及附加</td><td class="align-right">${fInvest(surtax)}</td><td>增值税 * ${fPercent(inputs.botSurtaxRate)}</td></tr>
@@ -760,8 +760,8 @@ export function populateRiskAnalysisDetails(analysisMode) { // <-- 这是修正�
             <ul class="list-disc list-inside text-sm space-y-1">
                 <li><b>风险 (收入不及预期):</b> 客户用热量未达标，或能源销售单价（热价）低于预期，导致年销售收入（${fWan(document.getElementById('botAnnualRevenue').value)} 万）无法实现。</li>
                 <li><b>对策:</b> <b>(1) 签订“照付不议”合同:</b> 与客户约定最低用热量，未达到也需按约定付费。<b>(2) 价格联动:</b> 合同中应包含能源价格（电价）与销售热价的联动条款，当电价上涨时，热价也随之上涨。</li>
-                <li><b>风险 (成本失控):</b> 电价（尤其是峰谷电价）涨幅超过预期，或 SPF 未达标导致电耗过高，压缩利润空间。</li>
-                <li><b>对策:</b> <b>(1) 精确测算 SPF:</b> 必须使用全年综合性能系数(SPF)而非名义COP来估算电费成本。<b>(2) 敏感性分析:</b> 测算电价上涨 10%、20% 时对项目TIRR和EIRR的影响。</li>
+                <li><b>风险 (成本失控):</b> 能源价格（电价、天然气等）涨幅超过预期，或设备能效未达标导致能耗过高，压缩利润空间。</li>
+                <li><b>对策:</b> <b>(1) 成本锁定:</b> 尽可能签订长期能源供应合同。<b>(2) 敏感性分析:</b> 测算能源成本上涨 10%、20% 时对项目TIRR和EIRR的影响。<b>(3) 价格联动:</b> 确保销售合同中包含成本与售价的联动条款。</li>
             </ul>
             <h4>2. 融资与现金流风险</h4>
             <ul class="list-disc list-inside text-sm space-y-1">
@@ -839,6 +839,8 @@ function buildBotPrintReport(results) {
                 <tr><td class="col-param">资本金比例</td><td class="align-right">${fPercent(inputs.botEquityRatio, 1)}</td></tr>
                 <tr><td class="col-param">贷款利率</td><td class="align-right">${fPercent(inputs.botLoanInterestRate, 1)}</td></tr>
                 <tr><td class="col-param">年销售收入 (万元)</td><td class="align-right">${fInvest(inputs.botAnnualRevenue / 10000)}</td></tr>
+                <tr><td class="col-param">年能源成本 (万元)</td><td class="align-right">${fInvest(inputs.botAnnualEnergyCost / 10000)}</td></tr>
+                <tr><td class="col-param">年运维成本 (万元)</td><td class="align-right">${fInvest(inputs.botAnnualOpexCost / 10000)}</td></tr>
             </table>
         </div>
 
@@ -862,7 +864,7 @@ function buildBotPrintReport(results) {
                     <tr><td class="col-param pl-6">减: 增值税 (销项)</td><td class="align-right">${fInvest(annualAvg.vat)}</td></tr>
                     <tr><td class="col-param"><b>B. 营业收入 (不含税)</b></td><td class="align-right"><b>${fInvest(annualAvg.revenueNetVat)}</b></td></tr>
                     <tr><td class="col-param"><b>C. 总成本费用</b></td><td class="align-right"><b>${fInvest(annualAvg.totalCost)}</b></td></tr>
-                    <tr><td class="col-param pl-6">1. 能源成本 (电费)</td><td class="align-right">${fInvest(annualAvg.energyCost)}</td></tr>
+                    <tr><td class="col-param pl-6">1. 能源成本</td><td class="align-right">${fInvest(annualAvg.energyCost)}</td></tr>
                     <tr><td class="col-param pl-6">2. 运维成本 (O&M)</td><td class="align-right">${fInvest(annualAvg.opexCost)}</td></tr>
                     <tr><td class="col-param pl-6">3. 折旧费用</td><td class="align-right">${fInvest(annualAvg.depreciation)}</td></tr>
                     <tr><td class="col-param pl-6">4. 利息支出</td><td class="align-right">${fInvest(annualAvg.interest)}</td></tr>
@@ -1010,7 +1012,7 @@ function buildCostComparisonPrintReport(results) {
                             <td><strong>工业热泵方案 (SPF: ${inputs.hpCop.toFixed(2)})</strong></td>
                             <td class="align-right"><strong>${fWan(hp.lcc.capex)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.energyCost)}</strong></td>
-                            <td class="align-right"><strong>${fWan(hp.opexCost)}</strong></td>
+                            <td class_name="align-right"><strong>${fWan(hp.opexCost)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.opex)}</strong></td>
                         </tr>
         `;
@@ -1022,7 +1024,7 @@ function buildCostComparisonPrintReport(results) {
                     <td class="align-right">${fWan(boilerData.lcc.capex)}</td>
                     <td class="align-right">${fWan(boilerData.energyCost)}</td>
                     <td class="align-right">${fWan(boilerData.opexCost)}</td>
-                    <td class="align-right">${fWan(boilerData.opex)}</td>
+                    <td class->${fWan(boilerData.opex)}</td>
                 </tr>
             `;
         });
@@ -1051,11 +1053,11 @@ function buildCostComparisonPrintReport(results) {
                 <tr>
                     <td>vs. ${c.name}</td>
                     <td class="align-right">${fWan(c.lccSaving)}</td>
-                    <td class="align-right">${fPercent(c.irr)}</td>
+                    <td class_name="align-right">${fPercent(c.irr)}</td>
                     <td class="align-right">${fYears(c.dynamicPBP)}</td>
                     <td class="align-right">${fNum(c.electricalPriceRatio, 2)}</td>
                     <td class="align-right">${fNum(c.consumption, 2)} ${c.consumptionUnit}</td>
-                    <td class="align-right">${fTon(c.co2Reduction)}</td>
+                    <td class_name="align-right">${fTon(c.co2Reduction)}</td>
                     </tr>
             `;
         });
@@ -1067,7 +1069,7 @@ function buildCostComparisonPrintReport(results) {
     }
 
     reportHTML += `
-        <div class="print-report-footer">
+        <div class->
             <p>注：全寿命周期成本(LCC)与ROI计算基于净现值(NPV)法，符合《建设项目经济评价方法与参数》相关规定。</p>
             <p>本程序已尽力确保正确，但不承担相关法律责任，App bug 请联系荆炎荣 15280122625。</p>
         </div>

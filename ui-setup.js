@@ -117,6 +117,15 @@ function setupModeSelector(markResultsAsStale) {
     const section2Title = document.getElementById('section2Title');
     const section7Title = document.getElementById('section7Title');
 
+    // **** 代码修改开始 ****
+    // 获取第1节中特定于模式的输入框
+    const heatingLoadInput = document.getElementById('heatingLoad');
+    const operatingHoursInput = document.getElementById('operatingHours');
+    const heatingLoadContainer = heatingLoadInput ? heatingLoadInput.closest('.input-group > div') : null;
+    const operatingHoursContainer = operatingHoursInput ? operatingHoursInput.closest('.input-group > div') : null;
+    // **** 代码修改结束 ****
+
+
     if (!modeStandard || !modeHybrid || !modeBot || !hybridConfigInputs || !botConfigInputs || !comparisonTogglesContainer || !standardModeSections || !lccParamsContainer) {
         console.error('V11.0 (模式选择) UI 元素未在 HTML 中完全找到。');
         return;
@@ -143,6 +152,12 @@ function setupModeSelector(markResultsAsStale) {
             standardModeSections.classList.remove('hidden');
             lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
             
+            // **** 代码修改开始 ****
+            // 显示第1节中的负荷和小时
+            if (heatingLoadContainer) heatingLoadContainer.classList.remove('hidden');
+            if (operatingHoursContainer) operatingHoursContainer.classList.remove('hidden');
+            // **** 代码修改结束 ****
+
             if (newMode === 'standard') {
                 hpCopLabel.textContent = '全年综合性能系数 (SPF)';
                 hpCopInput.value = spfStandardValue;
@@ -162,6 +177,12 @@ function setupModeSelector(markResultsAsStale) {
             comparisonTogglesContainer.classList.add('hidden'); // BOT模式不进行成本对比
             standardModeSections.classList.add('hidden'); // BOT模式不关心锅炉参数
             lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
+
+            // **** 代码修改开始 ****
+            // 隐藏第1节中的负荷和小时
+            if (heatingLoadContainer) heatingLoadContainer.classList.add('hidden');
+            if (operatingHoursContainer) operatingHoursContainer.classList.add('hidden');
+            // **** 代码修改结束 ****
 
             hpCopLabel.textContent = 'BOT 项目 SPF (用于计算电费成本)';
             hpCopInput.value = spfBotValue;
@@ -587,6 +608,8 @@ export function readAllInputs(showErrorCallback, alertNotifier) {
         hybridAuxHeaterOpex: (parseFloat(document.getElementById('hybridAuxHeaterOpex').value) || 0) * 10000,
         // V11.0: BOT 模式参数
         botAnnualRevenue: (parseFloat(document.getElementById('botAnnualRevenue').value) || 0) * 10000,
+        botAnnualEnergyCost: (parseFloat(document.getElementById('botAnnualEnergyCost').value) || 0) * 10000, 
+        botAnnualOpexCost: (parseFloat(document.getElementById('botAnnualOpexCost').value) || 0) * 10000, 
         botEquityRatio: (parseFloat(document.getElementById('botEquityRatio').value) || 0) / 100,
         botLoanInterestRate: (parseFloat(document.getElementById('botLoanInterestRate').value) || 0) / 100,
         botDepreciationYears: parseInt(document.getElementById('botDepreciationYears').value) || 10,
@@ -604,16 +627,30 @@ export function readAllInputs(showErrorCallback, alertNotifier) {
         }
     };
 
-    if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
-        // V11.0: 替换 alert
-        if(alertNotifier) {
-            alertNotifier('请填写有效的制热负荷、年运行小时和工业热泵SPF。', 'error');
-        } else {
-            alert('请填写有效的制热负荷、年运行小时和工业热泵SPF。'); // Fallback
+    // **** 代码修改开始 ****
+    if (analysisMode !== 'bot') {
+        // 成本对比模式: 必须检查 负荷, 小时, SPF
+        if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
+            if (alertNotifier) {
+                alertNotifier('成本对比模式: 请填写有效的制热负荷、年运行小时和工业热泵SPF。', 'error');
+            } else {
+                alert('成本对比模式: 请填写有效的制热负荷、年运行小时和工业热泵SPF。'); // Fallback
+            }
+            return null;
         }
-        return null;
+    } else {
+        // BOT 模式: 仅检查 收入 和 能源成本 (允许运维成本为0)
+        // (已移除对 heatingLoad 和 operatingHours 的检查)
+         if (inputs.botAnnualRevenue === 0 || inputs.botAnnualEnergyCost === 0) {
+            if(alertNotifier) {
+                alertNotifier('BOT模式: “年销售收入”和“年能源成本”必须大于0。', 'error');
+            } else {
+                alert('BOT模式: “年销售收入”和“年能源成本”必须大于0。');
+            }
+            return null;
+         }
     }
+    // **** 代码修改结束 ****
 
     return inputs;
 }
-

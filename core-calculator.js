@@ -20,38 +20,45 @@ export function runAnalysis(inputs) {
     };
     const annualHeatingDemandKWh = inputs.heatingLoad * inputs.operatingHours;
 
-    // 2. (所有模式通用) 计算加权平均电价
-    // V11.0: 即使在 BOT 模式下，也需要计算电费成本，因此此逻辑通用
-    const totalHpElec_FullLoad = (inputs.hpCop > 0) ? (annualHeatingDemandKWh / inputs.hpCop) : 0;
-    let hpEnergyCost_FullLoad = 0;
-    const hpEnergyCostDetails_FullLoad = { tiers: [] };
-    
-    inputs.priceTiers.forEach(tier => {
-        const dist_f = tier.dist / 100;
-        const elec_n = totalHpElec_FullLoad * dist_f;
-        const cost_n = elec_n * tier.price;
-        hpEnergyCost_FullLoad += cost_n;
-        hpEnergyCostDetails_FullLoad.tiers.push({ name: tier.name, elec: elec_n, price: tier.price, cost: cost_n });
-    });
-    
-    let weightedAvgElecPrice = 0;
-    if (totalHpElec_FullLoad > 0) {
-        weightedAvgElecPrice = hpEnergyCost_FullLoad / totalHpElec_FullLoad;
-    } else if (inputs.priceTiers.length > 0) {
-        // 如果没有电耗（例如 SPF 为 0），则按比例计算加权平均价
-        let totalWeight = 0;
-        inputs.priceTiers.forEach(t => { weightedAvgElecPrice += t.price * t.dist; totalWeight += t.dist; });
-        if (totalWeight > 0) weightedAvgElecPrice = weightedAvgElecPrice / totalWeight;
-        else if (inputs.priceTiers.length === 1) weightedAvgElecPrice = inputs.priceTiers[0].price;
-    }
+    // 2. (V11.0 优化: 电价计算逻辑已移至成本对比模式)
     
     // 3. 根据模式路由到不同的分析函数
     if (analysisMode === 'bot') {
         // --- V11.0: BOT 盈利模式分析 ---
-        // BOT 模式需要 hpEnergyCost_FullLoad (年电费成本) 作为输入
-        return runBotFinancialAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEnergyCost_FullLoad, annualHeatingDemandKWh);
+        // V11.0 优化：直接使用BOT专属的手动输入成本，不再依赖模式一的计算
+        return runBotFinancialAnalysis(
+            inputs, 
+            lccParams, 
+            inputs.botAnnualEnergyCost, 
+            inputs.botAnnualOpexCost
+        );
     } else {
         // --- V10.0: 成本对比模式分析 ---
+        
+        // V11.0 优化：将电费计算逻辑移至此处，仅在成本对比模式下执行
+        const totalHpElec_FullLoad = (inputs.hpCop > 0) ? (annualHeatingDemandKWh / inputs.hpCop) : 0;
+        let hpEnergyCost_FullLoad = 0;
+        const hpEnergyCostDetails_FullLoad = { tiers: [] };
+        
+        inputs.priceTiers.forEach(tier => {
+            const dist_f = tier.dist / 100;
+            const elec_n = totalHpElec_FullLoad * dist_f;
+            const cost_n = elec_n * tier.price;
+            hpEnergyCost_FullLoad += cost_n;
+            hpEnergyCostDetails_FullLoad.tiers.push({ name: tier.name, elec: elec_n, price: tier.price, cost: cost_n });
+        });
+        
+        let weightedAvgElecPrice = 0;
+        if (totalHpElec_FullLoad > 0) {
+            weightedAvgElecPrice = hpEnergyCost_FullLoad / totalHpElec_FullLoad;
+        } else if (inputs.priceTiers.length > 0) {
+            // 如果没有电耗（例如 SPF 为 0），则按比例计算加权平均价
+            let totalWeight = 0;
+            inputs.priceTiers.forEach(t => { weightedAvgElecPrice += t.price * t.dist; totalWeight += t.dist; });
+            if (totalWeight > 0) weightedAvgElecPrice = weightedAvgElecPrice / totalWeight;
+            else if (inputs.priceTiers.length === 1) weightedAvgElecPrice = inputs.priceTiers[0].price;
+        }
+        
         // V11.0 BUGFIX v2: 必须将 totalHpElec_FullLoad 也传递下去
         return runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEnergyCost_FullLoad, hpEnergyCostDetails_FullLoad, annualHeatingDemandKWh, analysisMode, totalHpElec_FullLoad);
     }
@@ -64,12 +71,11 @@ export function runAnalysis(inputs) {
  * V11.0: 运行 BOT 模式财务分析
  * @param {object} inputs 
  * @param {object} lccParams 
- * @param {number} weightedAvgElecPrice (暂未使用，但保留)
- * @param {number} hpEnergyCost_Year1 (第1年的电费成本)
- * @param {number} annualHeatingDemandKWh (暂未使用，但保留)
+ * @param {number} botEnergyCost_Year1 (第1年的能源成本, 来自新输入框)
+ * @param {number} botOpexCost_Year1 (第1年的运维成本, 来自新输入框)
  * @returns {object} BOT 分析结果
  */
-function runBotFinancialAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEnergyCost_Year1, annualHeatingDemandKWh) {
+function runBotFinancialAnalysis(inputs, lccParams, botEnergyCost_Year1, botOpexCost_Year1) {
     const { lccYears, discountRate, energyInflationRate, opexInflationRate } = lccParams;
     
     // 1. 投资估算 (V11.0: 单位为元)
@@ -111,8 +117,10 @@ function runBotFinancialAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEner
         // --- 成本 ---
         const surtax = vat * inputs.botSurtaxRate;
         // V11.0: 成本计入通胀
-        const energyCost = hpEnergyCost_Year1 * Math.pow(1 + energyInflationRate, n - 1);
-        const opexCost = inputs.hpOpexCost * Math.pow(1 + opexInflationRate, n - 1); // V11.0: BOT 模式也使用工业热泵的运维成本
+        // **** 代码修改开始 ****
+        const energyCost = botEnergyCost_Year1 * Math.pow(1 + energyInflationRate, n - 1); // 使用新的独立输入
+        const opexCost = botOpexCost_Year1 * Math.pow(1 + opexInflationRate, n - 1); // 使用新的独立输入
+        // **** 代码修改结束 ****
         
         // 折旧 (直线法)
         const depreciation = (n <= inputs.botDepreciationYears) ? ((totalInvestment * (1 - inputs.hpSalvageRate)) / inputs.botDepreciationYears) : 0; // V11.0: 修正为 (总投资-净残值)/年限

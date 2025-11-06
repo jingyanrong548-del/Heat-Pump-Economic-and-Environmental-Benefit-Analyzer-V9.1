@@ -148,6 +148,24 @@
                                     <input type="number" id="botAnnualRevenue" value="150" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
                                     <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>这是 BOT 模式的“命根子”</b>。<br><br>这是我们和客户谈好的“每年卖热的总价钱”。这个数字的合理性，直接决定了我们（投资者）的利润。</span>
                                 </div>
+
+                                <div class="tooltip-container">
+                                    <label for="botAnnualEnergyCost" class="block text-sm font-medium text-gray-700">
+                                        年能源成本 (万元)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
+                                    <input type="number" id="botAnnualEnergyCost" value="60" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>这是BOT项目的主要支出。</b><br><br>请预估项目第1年的总能源成本（如电费、燃气费等）。计算器将基于此值，并结合“能源价格涨幅”来推算未来成本。</span>
+                                </div>
+
+                                <div class="tooltip-container">
+                                    <label for="botAnnualOpexCost" class="block text-sm font-medium text-gray-700">
+                                        年运维成本 (万元)
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </label>
+                                    <input type="number" id="botAnnualOpexCost" value="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 track-change default-param">
+                                    <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>这是BOT项目的固定支出。</b><br><br>请预估项目第1年的总运维、人工、维保物料成本。计算器将基于此值，并结合“运维成本涨幅”来推算未来成本。</span>
+                                </div>
                                 <div class="tooltip-container">
                                     <label for="botEquityRatio" class="block text-sm font-medium text-gray-700">
                                         资本金比例 (%)
@@ -426,7 +444,7 @@
                                     <select id="fuelType" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                         <option value="diesel" selected>0号柴油</option>
                                         <option value="heavy_oil">重油</option>
-                                        <option value="residual_oil">渣油</option>
+                                        <option value_g="residual_oil">渣油</option>
                                     </select>
                                     <select id="fuelFactorUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                         <option value="kgCO2/t" selected>kgCO₂/吨</option>
