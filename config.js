@@ -55,10 +55,20 @@ export const converters = [
         selectId: 'heatingLoadUnit', inputId: 'heatingLoad',
         conversions: { 'kW': 1, 'kcal/h': KCAL_PER_KWH } // 1kW ≈ 860 kcal/h
     },
+    // **** 修改开始 ****
     {
         selectId: 'annualHeatingUnit', inputId: 'annualHeating',
-        conversions: { 'kWh': 1, 'Mkcal': KCAL_PER_KWH / 1000 } // 1kWh ≈ 0.00086 Mkcal
+        conversions: { 
+            'kWh': 1, 
+            'KJ': 3600,                       // 1 kWh = 3600 KJ
+            'MJ': 3.6,                       // 1 kWh = 3.6 MJ
+            'GJ': 0.0036,                    // 1 kWh = 0.0036 GJ
+            'TJ': 0.0000036,                 // 1 kWh = 0.0000036 TJ
+            '万大卡': KCAL_PER_KWH / 10000,    // 1 kWh = 860.42 / 10000 = 0.086 万大卡
+            'Mkcal': KCAL_PER_KWH / 1000000    // (已修复) 1 kWh = 860.42 / 1,000,000 = 0.00086 Mkcal (兆大卡)
+        }
     },
+    // **** 修改结束 ****
     // **** 修复结束 ****
     {
         selectId: 'gridFactorUnit', inputId: 'gridFactor',
