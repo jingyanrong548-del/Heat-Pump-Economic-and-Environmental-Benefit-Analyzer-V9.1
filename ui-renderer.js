@@ -344,7 +344,26 @@ function renderCostComparisonResults(results) {
     const hpCardTitleStatic = isHybrid ? '混合系统年运行成本 (第1年)' : '工业热泵系统年运行成本 (第1年)';
     const hpCardTitleLCC = isHybrid ? `混合系统 LCC (${lccYears}年)` : `工业热泵系统 LCC (${lccYears}年)`;
 
-    const hpCardStatic = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg result-card"><h3 class="font-bold text-lg text-blue-800">${hpCardTitleStatic}</h3><p class="text-2xl font-bold text-blue-600">${fWan(hpSystemDetails.opex)} 万元</p></div>`;
+    // **** 修复 (需求 2): 增加吨蒸汽电耗和单价 ****
+    const hpCardStatic = `
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg result-card">
+        <h3 class="font-bold text-lg text-blue-800 mb-2">${hpCardTitleStatic}</h3>
+        <div class="flex flex-col sm:flex-row justify-between sm:items-baseline sm:gap-4">
+            <div>
+                <p class="text-xs text-blue-700">年总运行成本</p>
+                <p class="text-2xl font-bold text-blue-600">${fWan(hpSystemDetails.opex)} 万元</p>
+            </div>
+            <div class="sm:text-right mt-2 sm:mt-0">
+                <p class="text-xs text-blue-700">折算吨蒸汽电耗</p>
+                <p class="text-lg font-semibold text-blue-600">${fNum(hpSystemDetails.electricity_per_steam_ton, 1)} kWh/t</p>
+            </div>
+            <div class="sm:text-right mt-2 sm:mt-0">
+                <p class="text-xs text-blue-700">折算吨蒸汽单价</p>
+                <p class="text-lg font-semibold text-blue-600">${fYuan(hpSystemDetails.cost_per_steam_ton)} 元/t</p>
+            </div>
+        </div>
+    </div>`;
+    // **** 修复结束 ****
     
     // **** 修复开始：为 LCC 卡片添加工具提示 ****
     const hpCardLCC = `
@@ -401,8 +420,8 @@ function renderCostComparisonResults(results) {
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block align-text-bottom ml-1 info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span class="tooltip-text" style="width: 300px; margin-left: -150px;"><b>通俗解释:</b> 考虑了利息和通胀后, <b>“真正”需要多少年才能收回初始投资</b>。这个值比“静态回收期”更真实、更可靠。</span>
                     </span>
-                    <span class="font-bold ${paybackColor}">${fYears(boiler.dynamicPBP)} 年</span>
-                </div>
+                    <span class="font-bold ${paybackColor}">${fYears(boiler.dynamicPBP)}</span>
+                    </div>
             </div>
             <div class="space-y-1 pt-2 border-t">
                 <h5 class="font-semibold text-gray-700 text-md">视角: 静态 (第1年) 与 环境</h5>
@@ -466,7 +485,7 @@ function renderCostComparisonResults(results) {
     const profitableROI = comparisons.filter(c => c.irr > discountRate && isFinite(c.irr)); 
     if (profitableROI.length > 0) {
         const bestIRR = profitableROI.reduce((p, c) => (p.irr > c.irr) ? p : c);
-        conclusionHTML += `<p class="text-sm text-gray-700"><b>投资回报 (ROI) 结论：</b>项目可行。相较于 <b>${profitableROI.map(p => p.name).join('、')}</b>，IRR 高于基准收益率(${fPercent(discountRate)})。回报最佳的是替代 <b>${bestIRR.name}</b>，IRR 高达 <b>${fPercent(bestIRR.irr)}</b>，动态回收期 <b>${fYears(bestIRR.dynamicPBP)}年</b>。</p>`;
+        conclusionHTML += `<p class="text-sm text-gray-700"><b>投资回报 (ROI) 结论：</b>项目可行。相较于 <b>${profitableROI.map(p => p.name).join('、')}</b>，IRR 高于基准收益率(${fPercent(discountRate)})。回报最佳的是替代 <b>${bestIRR.name}</b>，IRR 高达 <b>${fPercent(bestIRR.irr)}</b>，动态回收期 <b>${fYears(bestIRR.dynamicPBP)}</b>。</p>`;
     } else {
          const bestNPV = comparisons.length > 0 ? comparisons.reduce((p, c) => (p.npv > c.npv) ? p : c) : null;
          if (bestNPV && bestNPV.npv > 0) {
@@ -670,12 +689,20 @@ function populateCostComparisonCalculationDetails(results) {
             `;
         });
 
+    // **** BUG 修复: 补全模式一 (Standard) 的 else 逻辑 ****
     } else {
         // --- V8.0 标准模式的计算过程 ---
         let hpEnergyCostDetailsHTML = '';
         if (hp.energyCostDetails.tiers && hp.energyCostDetails.tiers.length > 0) {
             hp.energyCostDetails.tiers.forEach(tier => {
+                // ==========================================================
+                // **** BUG 修复开始 ****
+                // 错误代码: 变量 't' 未定义, 应该使用 'tier'
+                // hpEnergyCostDetailsHTML += `<p class="pl-4">↳ <b>${tier.name}:</b> ${fNum(tier.elec, 0)} kWh * ${tier.price} 元/kWh = ${fYuan(t.cost)} 元</p>`;
+                // 修正代码:
                 hpEnergyCostDetailsHTML += `<p class="pl-4">↳ <b>${tier.name}:</b> ${fNum(tier.elec, 0)} kWh * ${tier.price} 元/kWh = ${fYuan(tier.cost)} 元</p>`;
+                // **** BUG 修复结束 ****
+                // ==========================================================
             });
             hpEnergyCostDetailsHTML += `<p><b>年能源成本 (各时段合计):</b> ${fYuan(hp.energyCost)} 元</p>`;
         }
@@ -738,6 +765,7 @@ function populateCostComparisonCalculationDetails(results) {
             `;
         });
     }
+    // **** BUG 修复结束 ****
 
     document.getElementById('calculation-details').innerHTML = detailsHTML;
 }
@@ -1012,7 +1040,7 @@ function buildCostComparisonPrintReport(results) {
                             <td><strong>工业热泵方案 (SPF: ${inputs.hpCop.toFixed(2)})</strong></td>
                             <td class="align-right"><strong>${fWan(hp.lcc.capex)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.energyCost)}</strong></td>
-                            <td class_name="align-right"><strong>${fWan(hp.opexCost)}</strong></td>
+                            <td class="align-right"><strong>${fWan(hp.opexCost)}</strong></td>
                             <td class="align-right"><strong>${fWan(hp.opex)}</strong></td>
                         </tr>
         `;
@@ -1024,7 +1052,7 @@ function buildCostComparisonPrintReport(results) {
                     <td class="align-right">${fWan(boilerData.lcc.capex)}</td>
                     <td class="align-right">${fWan(boilerData.energyCost)}</td>
                     <td class="align-right">${fWan(boilerData.opexCost)}</td>
-                    <td class->${fWan(boilerData.opex)}</td>
+                    <td class="align-right">${fWan(boilerData.opex)}</td>
                 </tr>
             `;
         });
@@ -1053,11 +1081,11 @@ function buildCostComparisonPrintReport(results) {
                 <tr>
                     <td>vs. ${c.name}</td>
                     <td class="align-right">${fWan(c.lccSaving)}</td>
-                    <td class_name="align-right">${fPercent(c.irr)}</td>
+                    <td class="align-right">${fPercent(c.irr)}</td>
                     <td class="align-right">${fYears(c.dynamicPBP)}</td>
                     <td class="align-right">${fNum(c.electricalPriceRatio, 2)}</td>
                     <td class="align-right">${fNum(c.consumption, 2)} ${c.consumptionUnit}</td>
-                    <td class_name="align-right">${fTon(c.co2Reduction)}</td>
+                    <td class="align-right">${fTon(c.co2Reduction)}</td>
                     </tr>
             `;
         });
@@ -1069,7 +1097,7 @@ function buildCostComparisonPrintReport(results) {
     }
 
     reportHTML += `
-        <div class->
+        <div class="print-report-footer">
             <p>注：全寿命周期成本(LCC)与ROI计算基于净现值(NPV)法，符合《建设项目经济评价方法与参数》相关规定。</p>
             <p>本程序已尽力确保正确，但不承担相关法律责任，App bug 请联系荆炎荣 15280122625。</p>
         </div>

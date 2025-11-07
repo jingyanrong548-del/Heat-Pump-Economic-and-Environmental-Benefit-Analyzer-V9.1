@@ -40,16 +40,67 @@
                                 <label for="projectName" class="block text-sm font-medium text-gray-700">项目名称</label>
                                 <input type="text" id="projectName" value="示例项目" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                             </div>
+                        </div>
+
+                        <div class="mt-6 mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">年加热量计算模式</label>
+                            <fieldset class="flex flex-col sm:flex-row sm:space-x-6 space-y-2 sm:space-y-0">
+                                <div>
+                                    <input type="radio" id="calcModeAnnualHours" name="calcMode" value="annual" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change" checked>
+                                    <label for="calcModeAnnualHours" class="ml-2 text-sm font-medium text-gray-700">模式A: 按年总小时计算</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="calcModeTotalHeat" name="calcMode" value="total" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                                    <label for="calcModeTotalHeat" class="ml-2 text-sm font-medium text-gray-700">模式B: 按年总热量计算</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="calcModeDailyLoad" name="calcMode" value="daily" class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500 track-change">
+                                    <label for="calcModeDailyLoad" class="ml-2 text-sm font-medium text-gray-700">模式C: 按天数与负荷率计算</label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        
+                        <div id="calcModeAContainer" class="input-group">
                             <div>
-                                <label for="heatingLoad" class="block text-sm font-medium text-gray-700">制热负荷 (kW)</label>
-                                <input type="number" id="heatingLoad" value="1000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                <label for="heatingLoadUnit" class="block text-sm font-medium text-gray-700">制热负荷</label>
+                                <select id="heatingLoadUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <option value="kW" selected>kW (千瓦)</option>
+                                    <option value="kcal/h">kcal/h (大卡/小时)</option>
+                                </select>
+                                <input type="number" id="heatingLoad" data-base-value="1000" value="1000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                             </div>
                             <div>
                                 <label for="operatingHours" class="block text-sm font-medium text-gray-700">年运行小时 (h/年)</label>
-                                <input type="number" id="operatingHours" value="2000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                <input type="number" id="operatingHours" value="2000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change" style="margin-top: 37px;">
                             </div>
                         </div>
-                    </div>
+
+                        <div id="calcModeBContainer" class="input-group hidden">
+                            <div>
+                                <label for="annualHeatingUnit" class="block text-sm font-medium text-gray-700">年总加热量</label>
+                                <select id="annualHeatingUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
+                                    <option value="kWh" selected>kWh (千瓦时)</option>
+                                    <option value="Mkcal">Mkcal (兆大卡)</option>
+                                </select>
+                                <input type="number" id="annualHeating" data-base-value="2000000" value="2000000" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change default-param">
+                            </div>
+                            </div>
+
+                        <div id="calcModeCContainer" class="input-group hidden">
+                            <div>
+                                <label for="dailyHours" class="block text-sm font-medium text-gray-700">每天运行小时数 (h/day)</label>
+                                <input type="number" id="dailyHours" value="8" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change default-param">
+                            </div>
+                            <div>
+                                <label for="annualDays" class="block text-sm font-medium text-gray-700">全年运行天数 (days/year)</label>
+                                <input type="number" id="annualDays" value="300" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change default-param">
+                            </div>
+                            <div>
+                                <label for="loadFactor" class="block text-sm font-medium text-gray-700">平均负荷率 (%)</label>
+                                <input type="number" id="loadFactor" value="70" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change default-param">
+                            </div>
+                            </div>
+                        </div>
 
                     <div class="bg-white p-6 rounded-xl shadow-md">
                         <h2 id="section2Title" class="text-xl font-semibold mb-4 border-l-4 border-blue-500 pl-3">2. 方案配置</h2>
@@ -321,6 +372,7 @@
                                     <label for="gasCalorificUnit" class="block text-sm font-medium text-gray-700">天然气热值</label>
                                     <select id="gasCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                         <option value="MJ/m3" selected>MJ/m³</option>
+                                        <option value="kcal/m3">kcal/m³</option>
                                         <option value="kWh/m3">kWh/m³</option>
                                         <option value="GJ/m3">GJ/m³</option>
                                     </select>
@@ -331,6 +383,7 @@
                                     <label for="fuelCalorificUnit" class="block text-sm font-medium text-gray-700">燃油热值</label>
                                     <select id="fuelCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                         <option value="MJ/kg" selected>MJ/kg</option>
+                                        <option value="kcal/kg">kcal/kg</option>
                                         <option value="GJ/t">GJ/t</option>
                                         <option value="kWh/kg">kWh/kg</option>
                                     </select>
@@ -341,6 +394,7 @@
                                     <label for="coalCalorificUnit" class="block text-sm font-medium text-gray-700">标准煤热值</label>
                                     <select id="coalCalorificUnit" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 track-change">
                                         <option value="MJ/kg" selected>MJ/kg</option>
+                                        <option value="kcal/kg">kcal/kg</option>
                                         <option value="GJ/t">GJ/t</option>
                                         <option value="kWh/kg">kWh/kg</option>
                                     </select>

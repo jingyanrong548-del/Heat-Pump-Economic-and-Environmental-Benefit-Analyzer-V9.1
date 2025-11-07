@@ -20,6 +20,11 @@ function setupUnitConverters() {
 
         select.addEventListener('change', () => {
             const conversions = c.dynamicConversions ? c.dynamicConversions() : c.conversions;
+            // **** 修改 (需求 4): 确保 data-base-value 存在，如果不存在则从 value 初始化 ****
+            if (input.dataset.baseValue === undefined) {
+                input.dataset.baseValue = input.value;
+            }
+            // **** 修复结束 ****
             const baseValue = parseFloat(input.dataset.baseValue);
             const targetUnit = select.value;
 
@@ -39,6 +44,8 @@ function setupUnitConverters() {
             if (targetUnit.includes('/kg') && (c.inputId.includes('Calorific'))) precision = 3;
             if (targetUnit.includes('GJ/')) precision = 5;
             if (targetUnit.includes('kcal/kg')) precision = 0;
+            if (targetUnit.includes('kcal/m3')) precision = 0;
+            if (targetUnit.includes('kcal/h')) precision = 0;
 
             input.value = (baseValue * conversionFactor).toFixed(precision);
         });
@@ -117,12 +124,12 @@ function setupModeSelector(markResultsAsStale) {
     const section2Title = document.getElementById('section2Title');
     const section7Title = document.getElementById('section7Title');
 
-    // **** 代码修改开始 ****
+    // **** 代码修改开始 (需求 3) ****
     // 获取第1节中特定于模式的输入框
-    const heatingLoadInput = document.getElementById('heatingLoad');
-    const operatingHoursInput = document.getElementById('operatingHours');
-    const heatingLoadContainer = heatingLoadInput ? heatingLoadInput.closest('.input-group > div') : null;
-    const operatingHoursContainer = operatingHoursInput ? operatingHoursInput.closest('.input-group > div') : null;
+    const calcModeAContainer = document.getElementById('calcModeAContainer');
+    const calcModeBContainer = document.getElementById('calcModeBContainer');
+    const calcModeCContainer = document.getElementById('calcModeCContainer');
+    const calcModeRadios = document.querySelectorAll('input[name="calcMode"]');
     // **** 代码修改结束 ****
 
 
@@ -152,10 +159,11 @@ function setupModeSelector(markResultsAsStale) {
             standardModeSections.classList.remove('hidden');
             lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
             
-            // **** 代码修改开始 ****
-            // 显示第1节中的负荷和小时
-            if (heatingLoadContainer) heatingLoadContainer.classList.remove('hidden');
-            if (operatingHoursContainer) operatingHoursContainer.classList.remove('hidden');
+            // **** 代码修改开始 (需求 3) ****
+            // 显示第1节中的热量计算输入
+            calcModeRadios.forEach(radio => radio.disabled = false);
+            // 触发一次热量计算模式的 change 事件，以恢复正确的 A/B/C 显隐状态
+            document.querySelector('input[name="calcMode"]:checked').dispatchEvent(new Event('change'));
             // **** 代码修改结束 ****
 
             if (newMode === 'standard') {
@@ -178,10 +186,12 @@ function setupModeSelector(markResultsAsStale) {
             standardModeSections.classList.add('hidden'); // BOT模式不关心锅炉参数
             lccParamsContainer.classList.remove('hidden'); // 确保财务参数可见
 
-            // **** 代码修改开始 ****
-            // 隐藏第1节中的负荷和小时
-            if (heatingLoadContainer) heatingLoadContainer.classList.add('hidden');
-            if (operatingHoursContainer) operatingHoursContainer.classList.add('hidden');
+            // **** 代码修改开始 (需求 3) ****
+            // 隐藏第1节中的热量计算输入
+            if (calcModeAContainer) calcModeAContainer.classList.add('hidden');
+            if (calcModeBContainer) calcModeBContainer.classList.add('hidden');
+            if (calcModeCContainer) calcModeCContainer.classList.add('hidden');
+            calcModeRadios.forEach(radio => radio.disabled = true);
             // **** 代码修改结束 ****
 
             hpCopLabel.textContent = 'BOT 项目 SPF (用于计算电费成本)';
@@ -218,6 +228,58 @@ function setupModeSelector(markResultsAsStale) {
     // 初始化
     hpCopInput.value = spfStandardValue; 
     applyModeState('standard'); // 默认以标准模式启动
+}
+
+
+/**
+ * **** 新增 (需求 3): 设置年加热量计算模式的UI切换 ****
+ */
+function setupCalculationModeToggle(markResultsAsStale) {
+    const calcModeRadios = document.querySelectorAll('input[name="calcMode"]');
+    const modeAContainer = document.getElementById('calcModeAContainer');
+    const modeBContainer = document.getElementById('calcModeBContainer');
+    const modeCContainer = document.getElementById('calcModeCContainer');
+    
+    // 模式C 比较特殊, 它需要模式A中的 "heatingLoad" 但不需要 "operatingHours"
+    const operatingHoursContainer = document.getElementById('operatingHours')?.closest('.input-group > div');
+
+    if (!modeAContainer || !modeBContainer || !modeCContainer || !operatingHoursContainer || calcModeRadios.length === 0) {
+        console.error("年加热量计算模式的 UI 元素未完全找到。");
+        return;
+    }
+
+    const applyCalcMode = () => {
+        const selectedMode = document.querySelector('input[name="calcMode"]:checked').value;
+        
+        if (selectedMode === 'annual') {
+            // 模式A: 显示 A, 隐藏 B, C
+            modeAContainer.classList.remove('hidden');
+            modeBContainer.classList.add('hidden');
+            modeCContainer.classList.add('hidden');
+            // 确保 A 中的 operatingHours 是可见的
+            operatingHoursContainer.classList.remove('hidden');
+        } else if (selectedMode === 'total') {
+            // 模式B: 显示 B, 隐藏 A, C
+            modeAContainer.classList.add('hidden');
+            modeBContainer.classList.remove('hidden');
+            modeCContainer.classList.add('hidden');
+        } else if (selectedMode === 'daily') {
+            // 模式C: 显示 A (为了 heatingLoad), 显示 C, 隐藏 B
+            modeAContainer.classList.remove('hidden');
+            modeBContainer.classList.add('hidden');
+            modeCContainer.classList.remove('hidden');
+            // 关键: 隐藏 A 中的 operatingHours
+            operatingHoursContainer.classList.add('hidden');
+        }
+        markResultsAsStale();
+    };
+
+    calcModeRadios.forEach(radio => {
+        radio.addEventListener('change', applyCalcMode);
+    });
+
+    // 初始化
+    applyCalcMode();
 }
 
 
@@ -417,6 +479,11 @@ export function initializeInputSetup(markResultsAsStale, showGlobalNotification)
     // V11.0: 传入 showGlobalNotification 以替换 price tier 内部的 alert
     setupPriceTierControls(markResultsAsStale, showGlobalNotification); 
     setupModeSelector(markResultsAsStale);
+    
+    // **** 新增 (需求 3): 初始化热量计算模式的 UI 切换 ****
+    setupCalculationModeToggle(markResultsAsStale);
+    // **** 修复结束 ****
+
 
     // 设置所有输入的 "track-change" 监听器
     const allInputs = document.querySelectorAll('input[type="number"], input[type="checkbox"], select, input[type="text"], input[type="radio"]');
@@ -428,6 +495,16 @@ export function initializeInputSetup(markResultsAsStale, showGlobalNotification)
         } else {
             defaultValue = input.value;
         }
+        
+        // **** 修改 (需求 4): 对带单位换算的输入框，初始化 data-base-value ****
+        if (input.id === 'heatingLoad' || input.id === 'annualHeating' || input.id.endsWith('Calorific') || input.id.endsWith('Factor')) {
+             if (input.dataset.baseValue === undefined) {
+                // 如果 HTML 没有设置 data-base-value (例如 heatingLoad)，则从 value 初始化
+                input.dataset.baseValue = input.value;
+             }
+        }
+        // **** 修复结束 ****
+
         // 存储初始的默认值
         input.dataset.defaultValue = defaultValue;
 
@@ -450,9 +527,15 @@ export function initializeInputSetup(markResultsAsStale, showGlobalNotification)
             }
 
             // --- V10.0: 动态更新 data-base-value (用于单位换算) ---
-            const container = currentInput.closest('.tooltip-container');
+            // **** 修改 (需求 4): 查找同级的 select (HTML 结构已改变) ****
+            // const container = currentInput.closest('.tooltip-container'); // <-- 旧逻辑
+            const container = currentInput.parentElement; // <-- 新逻辑
+            // **** 修复结束 ****
             const unitSelects = container ? container.querySelectorAll('select') : [];
-            const unitSelect = Array.from(unitSelects).find(sel => sel.id.endsWith('Unit'));
+            // **** 修改 (需求 4): 修正 selectId 的匹配逻辑 (e.g., heatingLoad -> heatingLoadUnit) ****
+            // const unitSelect = Array.from(unitSelects).find(sel => sel.id.endsWith('Unit')); // <-- 旧逻辑
+            const unitSelect = document.getElementById(currentInput.id + 'Unit'); // <-- 新逻辑
+            // **** 修复结束 ****
 
             if (unitSelect && unitSelect.id.includes('Unit')) {
                 const currentVal = parseFloat(currentInput.value);
@@ -532,6 +615,32 @@ export function readAllInputs(showErrorCallback, alertNotifier) {
     
     showErrorCallback(null); // 清除错误
 
+    // **** 修改 (需求 3, 4): 读取热量计算模式及新输入 ****
+    const calcMode = document.querySelector('input[name="calcMode"]:checked')?.value || 'annual';
+    
+    // (需求 4) 关键: 必须从 data-base-value 读取带单位换算的值 (kW)
+    const heatingLoad = parseFloat(document.getElementById('heatingLoad').dataset.baseValue) || 0;
+    const operatingHours = parseFloat(document.getElementById('operatingHours').value) || 0;
+    
+    // (需求 4) 关键: 必须从 data-base-value 读取带单位换算的值 (kWh)
+    const annualHeating = parseFloat(document.getElementById('annualHeating').dataset.baseValue) || 0;
+    
+    const dailyHours = parseFloat(document.getElementById('dailyHours').value) || 0;
+    const annualDays = parseFloat(document.getElementById('annualDays').value) || 0;
+    const loadFactor = (parseFloat(document.getElementById('loadFactor').value) || 0) / 100;
+
+    // (需求 3) 计算最终的年总热量
+    let annualHeatingDemandKWh = 0;
+    if (calcMode === 'annual') {
+        annualHeatingDemandKWh = heatingLoad * operatingHours;
+    } else if (calcMode === 'total') {
+        annualHeatingDemandKWh = annualHeating;
+    } else if (calcMode === 'daily') {
+        annualHeatingDemandKWh = heatingLoad * dailyHours * annualDays * loadFactor;
+    }
+    // **** 修复结束 ****
+
+
     // 读取所有输入值
     const inputs = {
         // 模式
@@ -547,8 +656,17 @@ export function readAllInputs(showErrorCallback, alertNotifier) {
         priceTiers: priceTiers,
         // 基本信息
         projectName: document.getElementById('projectName').value, 
-        heatingLoad: parseFloat(document.getElementById('heatingLoad').value) || 0,
-        operatingHours: parseFloat(document.getElementById('operatingHours').value) || 0,
+        
+        // **** 修改 (需求 3, 4): 存储所有热量计算相关值 ****
+        heatingLoad: heatingLoad, // (kW)
+        operatingHours: operatingHours, // (h/年)
+        annualHeating: annualHeating, // (kWh)
+        dailyHours: dailyHours, // (h/day)
+        annualDays: annualDays, // (days/year)
+        loadFactor: loadFactor, // (0-1)
+        annualHeatingDemandKWh: annualHeatingDemandKWh, // (kWh) 最终计算值
+        // **** 修复结束 ****
+
         // Capex (方案A)
         hpHostCapex: parseFloat(document.getElementById('hpCapex').value) * 10000 || 0,
         hpStorageCapex: parseFloat(document.getElementById('storageCapex').value) * 10000 || 0,
@@ -627,14 +745,14 @@ export function readAllInputs(showErrorCallback, alertNotifier) {
         }
     };
 
-    // **** 代码修改开始 ****
+    // **** 代码修改开始 (需求 3) ****
     if (analysisMode !== 'bot') {
-        // 成本对比模式: 必须检查 负荷, 小时, SPF
-        if (!inputs.heatingLoad || !inputs.operatingHours || !inputs.hpCop) {
+        // 成本对比模式: 必须检查 最终计算热量 和 SPF
+        if (annualHeatingDemandKWh <= 0 || !inputs.hpCop) {
             if (alertNotifier) {
-                alertNotifier('成本对比模式: 请填写有效的制热负荷、年运行小时和工业热泵SPF。', 'error');
+                alertNotifier('成本对比模式: 请确保最终的“年总加热量”大于 0，并已填写工业热泵SPF。', 'error');
             } else {
-                alert('成本对比模式: 请填写有效的制热负荷、年运行小时和工业热泵SPF。'); // Fallback
+                alert('成本对比模式: 请确保最终的“年总加热量”大于 0，并已填写工业热泵SPF。'); // Fallback
             }
             return null;
         }

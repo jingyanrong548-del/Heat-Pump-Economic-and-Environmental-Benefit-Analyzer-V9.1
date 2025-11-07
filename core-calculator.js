@@ -18,7 +18,11 @@ export function runAnalysis(inputs) {
         energyInflationRate: inputs.energyInflationRate, 
         opexInflationRate: inputs.opexInflationRate 
     };
-    const annualHeatingDemandKWh = inputs.heatingLoad * inputs.operatingHours;
+    
+    // **** 修改 (需求 3): 不再此处计算热量，而是直接从 inputs 对象获取 (由 ui-setup.js 负责计算) ****
+    // const annualHeatingDemandKWh = inputs.heatingLoad * inputs.operatingHours; // <-- 旧代码
+    const { annualHeatingDemandKWh } = inputs; // <-- 新代码
+    // **** 修复结束 ****
 
     // 2. (V11.0 优化: 电价计算逻辑已移至成本对比模式)
     
@@ -255,6 +259,9 @@ function runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEn
     results.isHybridMode = isHybridMode;
     results.annualHeatingDemandKWh = annualHeatingDemandKWh;
     results.weightedAvgElecPrice = weightedAvgElecPrice;
+
+    // **** 新增 (需求 2): 定义 1 吨蒸汽折算的热量 (kWh) ****
+    const STEAM_KWH_PER_TON = 700;
     
     // --- (V10.0) 逻辑分支: 计算 "方案 A" ---
     let hpSystemDetails; 
@@ -311,6 +318,10 @@ function runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEn
         results.hybrid_aux = auxDetails; 
 
         // --- H-4: 汇总混合系统 (方案 A) ---
+        
+        // **** 新增 (需求 2): 折算吨蒸汽 ****
+        const total_steam_equivalent_hybrid = (annualHeatingDemandKWh > 0) ? (annualHeatingDemandKWh / STEAM_KWH_PER_TON) : 0;
+        
         const hybridSystem = {
             isHybrid: true,
             name: "混合系统 (工业热泵 + " + auxDetails.name + ")",
@@ -319,6 +330,13 @@ function runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEn
             opex: hpDetails.opex + auxDetails.opex, 
             co2: hpDetails.co2 + auxDetails.co2,
             cost_per_kwh_heat: annualHeatingDemandKWh > 0 ? ((hpDetails.energyCost + auxDetails.energyCost) / annualHeatingDemandKWh) : 0,
+            
+            // **** 新增 (需求 2): 折算吨蒸汽指标 ****
+            // (电耗仅计热泵部分，成本计混合总成本)
+            electricity_per_steam_ton: (total_steam_equivalent_hybrid > 0) ? totalHpElec_Hybrid / total_steam_equivalent_hybrid : 0,
+            cost_per_steam_ton: (total_steam_equivalent_hybrid > 0) ? (hpDetails.energyCost + auxDetails.energyCost) / total_steam_equivalent_hybrid : 0,
+            // **** 修复结束 ****
+
             lcc: {
                 capex: hpDetails.lcc.capex + auxDetails.lcc.capex,
                 capex_host: hpDetails.lcc.capex_host,
@@ -347,12 +365,21 @@ function runCostComparisonAnalysis(inputs, lccParams, weightedAvgElecPrice, hpEn
         const hpSalvageNPV = hpSalvageValue_Undiscounted / Math.pow(1 + discountRate, lccYears);
         const hpLCC = hpTotalCapex + hpEnergyNPV + hpOpexNPV - hpSalvageNPV;
 
+        // **** 新增 (需求 2): 折算吨蒸汽 ****
+        const total_steam_equivalent = (annualHeatingDemandKWh > 0) ? (annualHeatingDemandKWh / STEAM_KWH_PER_TON) : 0;
+        
         const hpDetails = {
             isHybrid: false,
             name: "工业热泵系统", // V11.0: 确保有 name
             energyCost: hpEnergyCost_FullLoad, energyCostDetails: hpEnergyCostDetails_FullLoad,
             opexCost: inputs.hpOpexCost, opex: hpOpex_Year1, co2: hpCo2,
             cost_per_kwh_heat: (inputs.hpCop > 0) ? (weightedAvgElecPrice / inputs.hpCop) : 0, 
+            
+            // **** 新增 (需求 2): 折算吨蒸汽指标 ****
+            electricity_per_steam_ton: (total_steam_equivalent > 0) ? totalHpElec_FullLoad / total_steam_equivalent : 0, // 吨蒸汽电耗
+            cost_per_steam_ton: (total_steam_equivalent > 0) ? hpEnergyCost_FullLoad / total_steam_equivalent : 0, // 吨蒸汽电费
+            // **** 修复结束 ****
+
             lcc: {
                 capex: hpTotalCapex, capex_host: inputs.hpHostCapex, capex_storage: inputs.hpStorageCapex,
                 energyNPV: hpEnergyNPV, opexNPV: hpOpexNPV,

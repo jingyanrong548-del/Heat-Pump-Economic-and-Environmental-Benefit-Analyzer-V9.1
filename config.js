@@ -38,11 +38,28 @@ export const fuelData = {
 export const MJ_PER_KCAL = 0.004184;
 
 /**
+ * 1 kWh (千瓦时) 对应的大卡 (kcal)
+ * 1 kWh = 860.42 kcal
+ */
+export const KCAL_PER_KWH = 860.42;
+
+
+/**
  * 单位换算器配置
  * 定义了所有输入框 (input) 和下拉框 (select) 之间的换算关系
  * 'dynamicConversions' 用于依赖其他输入值（如热值）的动态换算
  */
 export const converters = [
+    // **** 新增 (需求 3 & 4): 制热负荷 和 年总热量 换算 ****
+    {
+        selectId: 'heatingLoadUnit', inputId: 'heatingLoad',
+        conversions: { 'kW': 1, 'kcal/h': KCAL_PER_KWH } // 1kW ≈ 860 kcal/h
+    },
+    {
+        selectId: 'annualHeatingUnit', inputId: 'annualHeating',
+        conversions: { 'kWh': 1, 'Mkcal': KCAL_PER_KWH / 1000 } // 1kWh ≈ 0.00086 Mkcal
+    },
+    // **** 修复结束 ****
     {
         selectId: 'gridFactorUnit', inputId: 'gridFactor',
         conversions: { 'kgCO2/kWh': 1, 'tCO2/MWh': 1 }
@@ -81,19 +98,42 @@ export const converters = [
     },
     {
         selectId: 'gasCalorificUnit', inputId: 'gasCalorific',
-        conversions: { 'MJ/m3': 1, 'kWh/m3': 1 / 3.6, 'GJ/m3': 1 / 1000 }
+        conversions: { 
+            'MJ/m3': 1, 
+            'kWh/m3': 1 / 3.6, 
+            'GJ/m3': 1 / 1000,
+            // **** 新增 (需求 4) ****
+            'kcal/m3': 1 / MJ_PER_KCAL 
+        }
     },
      {
         selectId: 'fuelCalorificUnit', inputId: 'fuelCalorific',
-        conversions: { 'MJ/kg': 1, 'GJ/t': 1, 'kWh/kg': 1 / 3.6 }
+        conversions: { 
+            'MJ/kg': 1, 
+            'GJ/t': 1, 
+            'kWh/kg': 1 / 3.6,
+            // **** 新增 (需求 4) ****
+            'kcal/kg': 1 / MJ_PER_KCAL
+        }
     },
     {
         selectId: 'coalCalorificUnit', inputId: 'coalCalorific',
-        conversions: { 'MJ/kg': 1, 'GJ/t': 1, 'kWh/kg': 1 / 3.6 }
+        conversions: { 
+            'MJ/kg': 1, 
+            'GJ/t': 1, 
+            'kWh/kg': 1 / 3.6,
+            // **** 新增 (需求 4) ****
+            'kcal/kg': 1 / MJ_PER_KCAL
+        }
     },
     {
         selectId: 'biomassCalorificUnit', inputId: 'biomassCalorific',
-        conversions: { 'MJ/kg': 1, 'kcal/kg': 1 / MJ_PER_KCAL, 'GJ/t': 1, 'kWh/kg': 1 / 3.6 }
+        conversions: { 
+            'MJ/kg': 1, 
+            'kcal/kg': 1 / MJ_PER_KCAL, 
+            'GJ/t': 1, 
+            'kWh/kg': 1 / 3.6 
+        }
     },
     {
         selectId: 'steamCalorificUnit', inputId: 'steamCalorific',

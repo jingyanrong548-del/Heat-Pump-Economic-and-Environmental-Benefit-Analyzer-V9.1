@@ -153,6 +153,7 @@ export const fCop = (n) => (n).toFixed(2);
 export const fPercent = (n, p = 1) => (n === null || !isFinite(n)) ? 'N/A' : `${(n * 100).toFixed(p)} %`;
 
 /** (年) */
+// **** 修复 (需求 1): 将 '年年' 改为 '年' ****
 export const fYears = (n) => (n === null || !isFinite(n)) ? '无法回收' : `${n.toFixed(2)} 年`;
 
 /** (通用数字) */
@@ -163,4 +164,3 @@ export const fInt = (n) => (n).toLocaleString(undefined, {maximumFractionDigits:
 
 /** (元) */
 export const fYuan = (n) => (n).toLocaleString(undefined, {maximumFractionDigits: 0});
-
