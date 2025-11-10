@@ -104,8 +104,10 @@ function setupComparisonToggles() {
 /**
  * V11.0: 重写模式选择器，以支持三种模式 (标准, 混合, BOT)
  * 并独立记忆三种模式下的SPF值
+ * V11.1: 增加 showGlobalNotification 参数，并禁用模式三
  */
-function setupModeSelector(markResultsAsStale) {
+// **** 修改 1 (函数签名) ****
+function setupModeSelector(markResultsAsStale, showGlobalNotification) {
     const modeStandard = document.getElementById('modeStandard');
     const modeHybrid = document.getElementById('modeHybrid');
     const modeBot = document.getElementById('modeBot'); // V11.0 新增
@@ -221,8 +223,26 @@ function setupModeSelector(markResultsAsStale) {
         if (modeHybrid.checked) applyModeState('hybrid');
     });
     
+    // **** 修改 2 (禁用模式三) ****
     modeBot.addEventListener('change', () => {
-        if (modeBot.checked) applyModeState('bot');
+        if (modeBot.checked) {
+            // 1. 显示通知
+            if (showGlobalNotification) {
+                showGlobalNotification('模式三 (BOT 模式) 正在升级中，暂不开放。', 'info', 4000);
+            }
+
+            // 2. 阻止切换，将 radio 按钮重置回上一个模式
+            // (currentMode 变量中存储的是切换 *前* 的模式)
+            if (currentMode === 'standard') {
+                modeStandard.checked = true;
+            } else if (currentMode === 'hybrid') {
+                modeHybrid.checked = true;
+            } else {
+                 // 备用，默认退回模式一
+                modeStandard.checked = true;
+            }
+            // 注意：我们*不*调用 applyModeState('bot')
+        }
     });
 
     // 初始化
@@ -478,7 +498,9 @@ export function initializeInputSetup(markResultsAsStale, showGlobalNotification)
     setupFuelTypeSelector();
     // V11.0: 传入 showGlobalNotification 以替换 price tier 内部的 alert
     setupPriceTierControls(markResultsAsStale, showGlobalNotification); 
-    setupModeSelector(markResultsAsStale);
+    
+    // **** 修改 (传递通知句柄) ****
+    setupModeSelector(markResultsAsStale, showGlobalNotification);
     
     // **** 新增 (需求 3): 初始化热量计算模式的 UI 切换 ****
     setupCalculationModeToggle(markResultsAsStale);
